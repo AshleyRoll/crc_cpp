@@ -30,6 +30,9 @@
 
 #include "crc_cpp.h"
 
+using namespace crc_cpp;
+
+
 template <typename TCrc>
 bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::AccumulatorType expected)
 {
