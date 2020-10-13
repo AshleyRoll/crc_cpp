@@ -77,6 +77,9 @@ namespace util
 
 namespace impl
 {
+    //
+    // Define the basic traits we use in our CRC accumulators and Table Lookup
+    //
     template <typename TAccumulator>
     struct crc_traits
     {
@@ -85,8 +88,15 @@ namespace impl
         static constexpr uint8_t NIBBLE_MASK = 0x0Fu;
         static constexpr std::size_t TABLE_ENTRIES = 1u << NIBBLE_BITS;
 
-        using TableType = std::array<TAccumulator, TABLE_ENTRIES>;
+        using table_type = std::array<TAccumulator, TABLE_ENTRIES>;
     };
+
+    //
+    // CRC rotation policies.
+    //
+    // Forward rotation means that we clock in data MSB->LSB and rotate the Accumulator register left
+    // Reverse rotation means that we clock in data LSB->MSB and rotate the Accumulator register right
+    //
 
     template <typename TAccumulator, TAccumulator POLY>
     struct crc_forward_policy
@@ -94,14 +104,14 @@ namespace impl
         using traits = crc_traits<TAccumulator>;
         static constexpr TAccumulator POLYNOMIAL = POLY;
 
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_nibble(crc, value >> traits::NIBBLE_BITS, table);     // high nibble
             crc = update_nibble(crc, value & traits::NIBBLE_MASK, table);      // low nibble
             return crc;
         }
 
-        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
             value &= traits::NIBBLE_MASK;
@@ -143,14 +153,14 @@ namespace impl
         using traits = crc_traits<TAccumulator>;
         static constexpr TAccumulator POLYNOMIAL = POLY;
 
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_nibble(crc, value & traits::NIBBLE_MASK, table);      // low nibble
             crc = update_nibble(crc, value >> traits::NIBBLE_BITS, table);     // high nibble
             return crc;
         }
 
-        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
             value &= traits::NIBBLE_MASK;
@@ -188,8 +198,9 @@ namespace impl
 
 
     //
-    // A generic CRC implementation using a lookup table sized for computing
-    // a nibble (4 bits) at a time.
+    // A generic CRC lookup table sized for computing a nibble (4 bits) at a time.
+    //
+    // This is can be a large reduction of table space storage for embedded devices.
     //
     template <typename TAccumulator, const TAccumulator POLY, const bool REVERSE,
               typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
@@ -210,9 +221,9 @@ namespace impl
 
     private:
 
-        static constexpr typename traits::TableType Generate()
+        static constexpr typename traits::table_type Generate()
         {
-            typename traits::TableType table;
+            typename traits::table_type table;
 
             for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
@@ -222,9 +233,12 @@ namespace impl
             return table;
         }
 
-        static constexpr typename traits::TableType m_Table = Generate();
+        static constexpr typename traits::table_type m_Table = Generate();
     };
 
+    //
+    // The generic CRC accumulator that is table driven
+    //
     template <
         typename TAccumulator,
         const TAccumulator POLY,
@@ -234,18 +248,42 @@ namespace impl
     class crc
     {
         public:
-            using AccumulatorType = TAccumulator;
-            using TableType = crc_nibble_table<TAccumulator, POLY, REVERSE>;
+            using accumulator_type = TAccumulator;
+            static constexpr TAccumulator polynomial = POLY;
+            static constexpr TAccumulator initial_value = INITIAL;
+            static constexpr TAccumulator xor_out_value = XOR_OUT;
+            static constexpr bool reverse = reverse;
 
-            void init() { m_Crc = INITIAL; }
+            //
+            // Update the accumulator with a new byte
+            //
+            void update(uint8_t value) { m_Crc = table_impl::update(m_Crc, value); }
+
+            //
+            // Extract the final value of the accumulator.
+            //
             TAccumulator final() { return m_Crc ^ XOR_OUT; }
 
-            void update(uint8_t value) { m_Crc = TableType::update(m_Crc, value); }
+            //
+            // Reset the state of the accumulator back to the INITIAL value.
+            //
+            void reset() { m_Crc = INITIAL; }
+
 
         private:
+            using table_impl = crc_nibble_table<TAccumulator, POLY, REVERSE>;
             TAccumulator m_Crc = INITIAL;
     };
 }   // namespace impl
+
+
+//------------------------------------------------------------------------
+//
+// Define the set of CRC algorithms as types.
+//
+//------------------------------------------------------------------------
+
+
 
 using crc8 =            impl::crc<uint8_t, 0x07, 0x00, 0x00, false>;
 using crc8_rohc =       impl::crc<uint8_t, 0x07, 0xFF, 0x00, true>;
@@ -258,6 +296,8 @@ using crc32_posix =     impl::crc<uint32_t, 0x04C11DB7, 0x00000000, 0xFFFFFFFF, 
 using crc32_xfer =      impl::crc<uint32_t, 0x000000AF, 0x00000000, 0x00000000, false>;
 
 using crc64_ecma =      impl::crc<uint64_t, 0x42f0e1eba9ea3693, 0x0000000000000000, 0x0000000000000000, false>;
+
+// TODO: Extend  with remaining types.
 
 
 }   // namespace crc_cpp

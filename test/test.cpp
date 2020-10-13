@@ -34,12 +34,10 @@ using namespace crc_cpp;
 
 
 template <typename TCrc>
-bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::AccumulatorType expected)
+bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::accumulator_type expected)
 {
-    TCrc crc;
+    TCrc crc;   // initialised by construction
 
-
-    crc.init();
     for(auto c : message)
     {
         crc.update(c);
