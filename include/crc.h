@@ -264,34 +264,3 @@ using crc32_xfer =      crc<uint32_t, 0x000000AF, 0x00000000, 0x00000000, false>
 
 using crc64_ecma =      crc<uint64_t, 0x42f0e1eba9ea3693, 0x0000000000000000, 0x0000000000000000, false>;
 
-template <typename TCrc>
-constexpr bool test_crc(const uint8_t message[], int message_len, typename TCrc::AccumulatorType expected)
-{
-    TCrc crc;
-
-    crc.init();
-    for(int i = 0; i < message_len; i++)
-    {
-        crc.update(message[i]);
-    }
-
-    return crc.final() == expected;
-}
-
-
-int main()
-{
-    uint8_t message[]{'1', '2', '3', '4', '5', '6', '7', '8', '9' };
-    int const len = sizeof(message);
-
-    return true
-        && test_crc<crc64_ecma>(message, len, 0x6C40DF5F0B497347U)
-        && test_crc<crc32>(message, len, 0xCBF43926)
-        && test_crc<crc32_posix>(message, len, 0x765E7680)
-        && test_crc<crc32_xfer>(message, len, 0xBD0BE338)
-        && test_crc<crc16_ccit>(message, len, 0x29B1)
-        && test_crc<crc16_kermit>(message, len, 0x2189)
-        && test_crc<crc8>(message, len, 0xf4)
-        && test_crc<crc8_rohc>(message, len, 0xD0)
-        ;
-}
