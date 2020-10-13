@@ -77,6 +77,76 @@ namespace util
 
 namespace impl
 {
+    template <typename TAccumulator>
+    struct crc_traits
+    {
+        static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
+        static constexpr std::size_t NIBBLE_BITS = 4;
+        static constexpr uint8_t NIBBLE_MASK = 0x0Fu;
+        static constexpr std::size_t TABLE_ENTRIES = 1u << NIBBLE_BITS;
+
+        using TableType = std::array<TAccumulator, TABLE_ENTRIES>;
+    };
+
+    template <typename TAccumulator>
+    struct crc_forward_policy
+    {
+        using traits = crc_traits<TAccumulator>;
+
+        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        {
+            crc = update_nibble(crc, value >> traits::NIBBLE_BITS, table);     // high nibble
+            crc = update_nibble(crc, value & traits::NIBBLE_MASK, table);      // low nibble
+            return crc;
+        }
+
+        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        {
+            // ensure we have only 4 bits
+            value &= traits::NIBBLE_MASK;
+
+            // Extract the most significant nibble of the crc and xor with the value nibble
+            uint8_t t = (crc >> (traits::ACCUMULATOR_BITS - traits::NIBBLE_BITS)) ^ value;
+
+            // shit crc left the size of the nibble
+            crc <<= traits::NIBBLE_BITS;
+
+            // xor in the table data
+            crc ^= table[t];
+
+            return crc;
+        }
+    };
+
+    template <typename TAccumulator>
+    struct crc_reverse_policy
+    {
+        using traits = crc_traits<TAccumulator>;
+
+        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        {
+            crc = update_nibble(crc, value & traits::NIBBLE_MASK, table);      // low nibble
+            crc = update_nibble(crc, value >> traits::NIBBLE_BITS, table);     // high nibble
+            return crc;
+        }
+
+        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
+        {
+            // ensure we have only 4 bits
+            value &= traits::NIBBLE_MASK;
+
+            // Extract the least significant nibble of the crc and xor with the value nibble
+            uint8_t t = (crc & traits::NIBBLE_MASK) ^ value;
+
+            // shit crc right the size of a nibble
+            crc >>= traits::NIBBLE_BITS;
+
+            // xor in the table data
+            crc ^= table[t];
+
+            return crc;
+        }
+    };
 
 
     //
@@ -91,49 +161,27 @@ namespace impl
     class crc_nibble_table_forward
     {
     public:
-        static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
-        static constexpr std::size_t NIBBLE_BITS = 4;
-        static constexpr uint8_t NIBBLE_MASK = 0x0Fu;
-        static constexpr std::size_t ENTRIES = 1u << NIBBLE_BITS;
+        using traits = crc_traits<TAccumulator>;
+        using policy = crc_forward_policy<TAccumulator>;
 
-        static constexpr TAccumulator ACCUMULATOR_HIGH_BIT_MASK = TAccumulator(1u) << (ACCUMULATOR_BITS - 1);
         static constexpr TAccumulator POLYNOMIAL = POLY;
-        using TableType = std::array<TAccumulator, ENTRIES>;
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
-            crc = update_nibble(crc, value >> NIBBLE_BITS);     // high nibble
-            crc = update_nibble(crc, value & NIBBLE_MASK);      // low nibble
-            return crc;
+            return policy::update(crc, value, m_Table);
         }
 
     private:
-        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value)
-        {
-            // ensure we have only 4 bits
-            value &= NIBBLE_MASK;
-
-            // Extract the most significant nibble of the crc and xor with the value nibble
-            uint8_t t = (crc >> (ACCUMULATOR_BITS - NIBBLE_BITS)) ^ value;
-
-            // shit crc left the size of the nibble
-            crc <<= NIBBLE_BITS;
-
-            // xor in the table data
-            crc ^= m_Table[t];
-
-            return crc;
-        }
 
         static constexpr TAccumulator GenerateEntry(uint8_t index)
         {
             // initialise with the register in the upper bits
-            TAccumulator entry = TAccumulator(index) << (ACCUMULATOR_BITS - NIBBLE_BITS);
+            TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::NIBBLE_BITS);
 
-            for(std::size_t i = 0; i < NIBBLE_BITS; i++)
+            for(std::size_t i = 0; i < traits::NIBBLE_BITS; i++)
             {
-                // We are processing MSBs / rotating left
-                if(entry & ACCUMULATOR_HIGH_BIT_MASK) {
+                // We are processing MSBs / rotating left so we need to check the high bit
+                if(entry & (TAccumulator(1u) << (traits::ACCUMULATOR_BITS - 1))) {
                     entry = (entry << 1) ^ POLYNOMIAL;
                 } else {
                     entry = (entry << 1);
@@ -142,11 +190,11 @@ namespace impl
             return entry;
         }
 
-        static constexpr TableType Generate()
+        static constexpr typename traits::TableType Generate()
         {
-            TableType table;
+            typename traits::TableType table;
 
-            for(std::size_t nibble = 0; nibble < ENTRIES; ++nibble)
+            for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
                 table[nibble] = GenerateEntry(nibble);
             }
@@ -154,7 +202,7 @@ namespace impl
             return table;
         }
 
-        static constexpr TableType m_Table = Generate();
+        static constexpr typename traits::TableType m_Table = Generate();
     };
 
     //
@@ -169,44 +217,24 @@ namespace impl
     class crc_nibble_table_reverse
     {
     public:
-        static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
-        static constexpr std::size_t NIBBLE_BITS = 4;
-        static constexpr uint8_t NIBBLE_MASK = 0x0Fu;
-        static constexpr std::size_t ENTRIES = 1u << NIBBLE_BITS;
+        using traits = crc_traits<TAccumulator>;
+        using policy = crc_reverse_policy<TAccumulator>;
+
         static constexpr TAccumulator POLYNOMIAL = POLY;
-        using TableType = std::array<TAccumulator, ENTRIES>;
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
-            crc = update_nibble(crc, value & NIBBLE_MASK);      // low nibble
-            crc = update_nibble(crc, value >> NIBBLE_BITS);     // high nibble
-            return crc;
+            return policy::update(crc, value, m_Table);
         }
 
     private:
-        static constexpr TAccumulator update_nibble(TAccumulator crc, uint8_t value)
-        {
-            // ensure we have only 4 bits
-            value &= NIBBLE_MASK;
-
-            // Extract the least significant nibble of the crc and xor with the value nibble
-            uint8_t t = (crc & NIBBLE_MASK) ^ value;
-
-            // shit crc right the size of a nibble
-            crc >>= NIBBLE_BITS;
-
-            // xor in the table data
-            crc ^= m_Table[t];
-
-            return crc;
-        }
 
         static constexpr TAccumulator GenerateEntry(uint8_t index)
         {
             // initialise with the register in the lower bits
             TAccumulator entry = TAccumulator(index);
 
-            for(std::size_t i = 0; i < NIBBLE_BITS; i++)
+            for(std::size_t i = 0; i < traits::NIBBLE_BITS; i++)
             {
                 // we are processing LSBs/rotating right
                 if(entry & 0x1u) {
@@ -218,11 +246,11 @@ namespace impl
             return entry;
         }
 
-        static constexpr TableType Generate()
+        static constexpr typename traits::TableType Generate()
         {
-            TableType table;
+            typename traits::TableType table;
 
-            for(std::size_t nibble = 0; nibble < ENTRIES; ++nibble)
+            for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
                 table[nibble] = GenerateEntry(nibble);
             }
@@ -230,7 +258,7 @@ namespace impl
             return table;
         }
 
-        static constexpr TableType m_Table = Generate();
+        static constexpr typename traits::TableType m_Table = Generate();
     };
 
     template <
