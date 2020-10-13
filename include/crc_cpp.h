@@ -88,10 +88,11 @@ namespace impl
         using TableType = std::array<TAccumulator, TABLE_ENTRIES>;
     };
 
-    template <typename TAccumulator>
+    template <typename TAccumulator, TAccumulator POLY>
     struct crc_forward_policy
     {
         using traits = crc_traits<TAccumulator>;
+        static constexpr TAccumulator POLYNOMIAL = POLY;
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
         {
@@ -116,12 +117,31 @@ namespace impl
 
             return crc;
         }
+
+        static constexpr TAccumulator generate_entry(uint8_t index)
+        {
+            // initialise with the register in the upper bits
+            TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::NIBBLE_BITS);
+
+            for(std::size_t i = 0; i < traits::NIBBLE_BITS; i++)
+            {
+                // We are processing MSBs / rotating left so we need to check the high bit
+                if(entry & (TAccumulator(1u) << (traits::ACCUMULATOR_BITS - 1))) {
+                    entry = (entry << 1) ^ POLYNOMIAL;
+                } else {
+                    entry = (entry << 1);
+                }
+            }
+
+            return entry;
+        }
     };
 
-    template <typename TAccumulator>
+    template <typename TAccumulator, TAccumulator POLY>
     struct crc_reverse_policy
     {
         using traits = crc_traits<TAccumulator>;
+        static constexpr TAccumulator POLYNOMIAL = POLY;
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::TableType const &table)
         {
@@ -146,90 +166,8 @@ namespace impl
 
             return crc;
         }
-    };
 
-
-    //
-    // A generic CRC implementation using a lookup table sized for computing
-    // a nibble (4 bits) at a time.
-    //
-    // The forward implementation rotates the accumulator register left
-    // and clocks data in from the MSB to LSB
-    //
-    template <typename TAccumulator, TAccumulator POLY,
-              typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
-    class crc_nibble_table_forward
-    {
-    public:
-        using traits = crc_traits<TAccumulator>;
-        using policy = crc_forward_policy<TAccumulator>;
-
-        static constexpr TAccumulator POLYNOMIAL = POLY;
-
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
-        {
-            return policy::update(crc, value, m_Table);
-        }
-
-    private:
-
-        static constexpr TAccumulator GenerateEntry(uint8_t index)
-        {
-            // initialise with the register in the upper bits
-            TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::NIBBLE_BITS);
-
-            for(std::size_t i = 0; i < traits::NIBBLE_BITS; i++)
-            {
-                // We are processing MSBs / rotating left so we need to check the high bit
-                if(entry & (TAccumulator(1u) << (traits::ACCUMULATOR_BITS - 1))) {
-                    entry = (entry << 1) ^ POLYNOMIAL;
-                } else {
-                    entry = (entry << 1);
-                }
-            }
-            return entry;
-        }
-
-        static constexpr typename traits::TableType Generate()
-        {
-            typename traits::TableType table;
-
-            for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
-            {
-                table[nibble] = GenerateEntry(nibble);
-            }
-
-            return table;
-        }
-
-        static constexpr typename traits::TableType m_Table = Generate();
-    };
-
-    //
-    // A generic CRC implementation using a lookup table sized for computing
-    // a nibble (4 bits) at a time.
-    //
-    // The reverse implementation rotates the accumulator register right
-    // and clocks data in from the LSB to MSB
-    //
-    template <typename TAccumulator, TAccumulator POLY,
-              typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
-    class crc_nibble_table_reverse
-    {
-    public:
-        using traits = crc_traits<TAccumulator>;
-        using policy = crc_reverse_policy<TAccumulator>;
-
-        static constexpr TAccumulator POLYNOMIAL = POLY;
-
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
-        {
-            return policy::update(crc, value, m_Table);
-        }
-
-    private:
-
-        static constexpr TAccumulator GenerateEntry(uint8_t index)
+        static constexpr TAccumulator generate_entry(uint8_t index)
         {
             // initialise with the register in the lower bits
             TAccumulator entry = TAccumulator(index);
@@ -243,8 +181,34 @@ namespace impl
                     entry = (entry >> 1);
                 }
             }
+
             return entry;
         }
+    };
+
+
+    //
+    // A generic CRC implementation using a lookup table sized for computing
+    // a nibble (4 bits) at a time.
+    //
+    template <typename TAccumulator, const TAccumulator POLY, const bool REVERSE,
+              typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
+    class crc_nibble_table
+    {
+    public:
+        using traits = crc_traits<TAccumulator>;
+        using policy = typename
+            std::conditional<REVERSE,
+                crc_reverse_policy<TAccumulator, POLY>,
+                crc_forward_policy<TAccumulator, POLY>>::type;
+
+
+        static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
+        {
+            return policy::update(crc, value, m_Table);
+        }
+
+    private:
 
         static constexpr typename traits::TableType Generate()
         {
@@ -252,7 +216,7 @@ namespace impl
 
             for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
-                table[nibble] = GenerateEntry(nibble);
+                table[nibble] = policy::generate_entry(nibble);
             }
 
             return table;
@@ -271,10 +235,7 @@ namespace impl
     {
         public:
             using AccumulatorType = TAccumulator;
-            using TableType = typename
-                std::conditional<REVERSE,
-                    crc_nibble_table_reverse<TAccumulator, POLY>,
-                    crc_nibble_table_forward<TAccumulator, POLY>>::type;
+            using TableType = crc_nibble_table<TAccumulator, POLY, REVERSE>;
 
             void init() { m_Crc = INITIAL; }
             TAccumulator final() { return m_Crc ^ XOR_OUT; }
