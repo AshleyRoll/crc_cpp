@@ -1,3 +1,7 @@
+![C++20 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++20%20Test/badge.svg)
+![C++17 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++17%20Test/badge.svg)
+
+
 # crc_cpp
 
 A Header only, `constexpr` / compile time small-table based CRC library.
