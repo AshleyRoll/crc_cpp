@@ -149,6 +149,11 @@ namespace impl
 
             return entry;
         }
+
+        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        {
+            return init;
+        }
     };
 
     template <typename TAccumulator, TAccumulator POLY>
@@ -198,6 +203,11 @@ namespace impl
 
             return entry;
         }
+
+        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        {
+            return util::reverse_bits(init);
+        }
     };
 
 
@@ -218,9 +228,17 @@ namespace impl
                 crc_forward_policy<TAccumulator, POLY>>::type;
 
 
+        // update the given crc accumulator with the value
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
             return policy::update(crc, value, m_Table);
+        }
+
+        // the crc accumulator initial value may need to be modified by the policy
+        // to account for rotation direction
+        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        {
+            return policy::make_initial_value(init);
         }
 
     private:
@@ -292,12 +310,12 @@ namespace impl
             //
             // Reset the state of the accumulator back to the INITIAL value.
             //
-            void reset() { m_Crc = INITIAL; }
+            void reset() { m_Crc = table_impl::make_initial_value(INITIAL); }
 
 
         private:
             using table_impl = crc_nibble_table<TAccumulator, POLY, REVERSE>;
-            TAccumulator m_Crc = INITIAL;
+            TAccumulator m_Crc = table_impl::make_initial_value(INITIAL);
     };
 }   // namespace impl
 
@@ -309,20 +327,52 @@ namespace impl
 //------------------------------------------------------------------------
 
 
-
+//                                size,    poly, init, xor,  reverse
 using crc8 =            impl::crc<uint8_t, 0x07, 0x00, 0x00, false>;
+using crc8_cdma2000 =   impl::crc<uint8_t, 0x9B, 0xFF, 0x00, false>;
+using crc8_darc =       impl::crc<uint8_t, 0x39, 0x00, 0x00, true>;
+using crc8_dvbs2 =      impl::crc<uint8_t, 0xD5, 0x00, 0x00, false>;
+using crc8_ebu =        impl::crc<uint8_t, 0x1D, 0xFF, 0x00, true>;
+using crc8_icode =      impl::crc<uint8_t, 0x1D, 0xFD, 0x00, false>;
+using crc8_itu =        impl::crc<uint8_t, 0x07, 0x00, 0x55, false>;
+using crc8_maxim =      impl::crc<uint8_t, 0x31, 0x00, 0x00, true>;
 using crc8_rohc =       impl::crc<uint8_t, 0x07, 0xFF, 0x00, true>;
+using crc8_wcdma =      impl::crc<uint8_t, 0x9B, 0x00, 0x00, true>;
 
+//                                size,     poly,   init,   xor,    reverse
 using crc16_ccit =      impl::crc<uint16_t, 0x1021, 0xFFFF, 0x0000, false>;
+using crc16_arc =       impl::crc<uint16_t, 0x8005, 0x0000, 0x0000, true>;
+using crc16_augccit =   impl::crc<uint16_t, 0x1021, 0x1D0F, 0x0000, false>;
+using crc16_buypass =   impl::crc<uint16_t, 0x8005, 0x0000, 0x0000, false>;
+using crc16_cmda2000 =  impl::crc<uint16_t, 0xc867, 0xFFFF, 0x0000, false>;
+using crc16_dds110 =    impl::crc<uint16_t, 0x8005, 0x800D, 0x0000, false>;
+using crc16_dectr =     impl::crc<uint16_t, 0x0589, 0x0000, 0x0001, false>;
+using crc16_dectx =     impl::crc<uint16_t, 0x0589, 0x0000, 0x0000, false>;
+using crc16_dnp =       impl::crc<uint16_t, 0x3D65, 0x0000, 0xFFFF, true>;
+using crc16_en13757 =   impl::crc<uint16_t, 0x3D65, 0x0000, 0xFFFF, false>;
+using crc16_genibus =   impl::crc<uint16_t, 0x1021, 0xFFFF, 0xFFFF, false>;
+using crc16_maxim =     impl::crc<uint16_t, 0x8005, 0x0000, 0xFFFF, true>;
+using crc16_mcrf4xx =   impl::crc<uint16_t, 0x1021, 0xFFFF, 0x0000, true>;
+using crc16_riello =    impl::crc<uint16_t, 0x1021, 0xB2AA, 0x0000, true>;
+using crc16_t10dif =    impl::crc<uint16_t, 0x8BB7, 0x0000, 0x0000, false>;
+using crc16_teledisk =  impl::crc<uint16_t, 0xA097, 0x0000, 0x0000, false>;
+using crc16_tms37157 =  impl::crc<uint16_t, 0x1021, 0x89EC, 0x0000, true>;
+using crc16_usb =       impl::crc<uint16_t, 0x8005, 0xFFFF, 0xFFFF, true>;
+using crc16_a =         impl::crc<uint16_t, 0x1021, 0xC6C6, 0x0000, true>;
 using crc16_kermit =    impl::crc<uint16_t, 0x1021, 0x0000, 0x0000, true>;
+using crc16_modbus =    impl::crc<uint16_t, 0x8005, 0xFFFF, 0x0000, true>;
+using crc16_x25 =       impl::crc<uint16_t, 0x1021, 0xFFFF, 0xFFFF, true>;
+using crc16_xmodem =    impl::crc<uint16_t, 0x1021, 0x0000, 0x0000, false>;
 
+
+
+//                                size,     poly,       init,       xor,        reverse
 using crc32 =           impl::crc<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true>;
 using crc32_posix =     impl::crc<uint32_t, 0x04C11DB7, 0x00000000, 0xFFFFFFFF, false>;
 using crc32_xfer =      impl::crc<uint32_t, 0x000000AF, 0x00000000, 0x00000000, false>;
 
+//                                size,     poly,               init,               xor,                reverse
 using crc64_ecma =      impl::crc<uint64_t, 0x42f0e1eba9ea3693, 0x0000000000000000, 0x0000000000000000, false>;
-
-// TODO: Extend  with remaining types.
 
 
 }   // namespace crc_cpp
