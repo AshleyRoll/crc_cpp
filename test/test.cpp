@@ -125,6 +125,7 @@ int main()
         std::cout << "\nTests Failed!\n";
     }
 
-    return status;
+    // return a zero status on success
+    return status? 0:-1;
 }
 
