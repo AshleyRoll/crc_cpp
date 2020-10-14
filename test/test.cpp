@@ -40,6 +40,7 @@ bool test_reverse_bits(std::string name)
     int const bits = sizeof(T) * 8;
 
     for(int i = 0; i < bits; i++) {
+        // careful with types to ensure we don't end up with signed ints
         T const test = T(0x01u) << i;
         T const expected = T(0x01u) << ((bits - 1) - i);
 

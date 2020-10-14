@@ -34,6 +34,9 @@ namespace crc_cpp
 
 namespace util
 {
+    //
+    // Efficient bit reversal routines
+    //
     template<typename T> constexpr T reverse_bits(T value);
 
     template<> constexpr uint8_t reverse_bits(uint8_t value)
@@ -73,6 +76,7 @@ namespace util
         value = (value >> 32) | (value << 32);
         return value;
     }
+
 }   // namespace util
 
 namespace impl
@@ -221,6 +225,10 @@ namespace impl
 
     private:
 
+// If we are C++20 or above, we can leverage cleaner constexpr initialisation
+// otherwise we will attempt to use a static table builder metaprogramming pattern
+// NOTE: Only C++17 will work, other constexpr code prevents C++14 and below working.
+#if __cplusplus >= 202002L
         static constexpr typename traits::table_type Generate()
         {
             typename traits::table_type table;
@@ -234,6 +242,23 @@ namespace impl
         }
 
         static constexpr typename traits::table_type m_Table = Generate();
+#else
+        // table builder for C++17
+
+        // recursive case
+        template<uint8_t INDEX = 0, TAccumulator ...D>
+        struct table_builder : table_builder<INDEX+1, D..., policy::generate_entry(INDEX)> {};
+
+        // termination of recursion at table length
+        template<TAccumulator ...D>
+        struct table_builder<traits::TABLE_ENTRIES, D...>
+        {
+            static constexpr typename traits::table_type table = {D...};
+        };
+
+        static constexpr typename traits::table_type m_Table = table_builder<>::table;
+#endif
+
     };
 
     //
