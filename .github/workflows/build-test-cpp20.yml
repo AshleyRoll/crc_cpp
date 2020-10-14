@@ -1,6 +1,7 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
+#
+# Build and test the library using C++20 mode with both Clang and GCC
+#
+name: C++20 Test
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
@@ -10,22 +11,22 @@ on:
   pull_request:
     branches: [ main, dev ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # Build under C++20 or later
   build-clang-cpp20:
-    # The type of runner that the job will run on
     runs-on: ubuntu-20.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Build
+      - name: Build Clang C++20
         run: clang++ -O3 --std=c++20 -Wall -Wextra -I./include test/test.cpp -o test-clang-20
 
-      # Runs a set of commands using the runners shell
-      - name: Test
+      - name: Build GCC C++17
+        run: g++ -O3 --std=c++20 -Wall -Wextra -I./include test/test.cpp -o test-gcc-20
+
+      - name: Test Clang C++20
         run: ./test-clang-20
+
+      - name: Test GCC C++20
+        run: ./test-gcc-20

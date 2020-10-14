@@ -1,0 +1,33 @@
+#
+# Build and test the library using C++17 mode with both Clang and GCC
+#
+
+name: C++17 Test
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the main branch
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-clang-cpp20:
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Build Clang C++17
+        run: clang++ -O3 --std=c++17 -Wall -Wextra -I./include test/test.cpp -o test-clang-17
+
+      - name: Build GCC C++17
+        run: g++ -O3 --std=c++17 -Wall -Wextra -I./include test/test.cpp -o test-gcc-17
+
+      - name: Test Clang C++17
+        run: ./test-clang-17
+
+      - name: Test GCC C++17
+        run: ./test-gcc-17
