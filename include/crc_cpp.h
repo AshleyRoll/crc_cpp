@@ -368,7 +368,13 @@ using crc16_xmodem =    impl::crc<uint16_t, 0x1021, 0x0000, 0x0000, false>;
 
 //                                size,     poly,       init,       xor,        reverse
 using crc32 =           impl::crc<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true>;
+using crc32_bzip2 =     impl::crc<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, false>;
+using crc32_c =         impl::crc<uint32_t, 0x1EDC6F41, 0xFFFFFFFF, 0xFFFFFFFF, true>;
+using crc32_d =         impl::crc<uint32_t, 0xA833982B, 0xFFFFFFFF, 0xFFFFFFFF, true>;
+using crc32_mpeg2 =     impl::crc<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, false>;
 using crc32_posix =     impl::crc<uint32_t, 0x04C11DB7, 0x00000000, 0xFFFFFFFF, false>;
+using crc32_q =         impl::crc<uint32_t, 0x814141AB, 0x00000000, 0x00000000, false>;
+using crc32_jamcrc =    impl::crc<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0x00000000, true>;
 using crc32_xfer =      impl::crc<uint32_t, 0x000000AF, 0x00000000, 0x00000000, false>;
 
 //                                size,     poly,               init,               xor,                reverse

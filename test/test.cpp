@@ -72,7 +72,6 @@ bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::acc
 {
     TCrc crc;   // initialised by construction
 
-    crc.reset();
     for(auto c : message)
     {
         crc.update(c);
@@ -149,13 +148,17 @@ int main()
     status &=     test_crc<crc16_x25 >("crc16_x25",      message, 0x906E);
     status &=  test_crc<crc16_xmodem >("crc16_xmodem",   message, 0x31C3);
 
-    status &=          test_crc<crc32>("crc32",         message, 0xCBF43926);
-    status &=    test_crc<crc32_posix>("crc32_posix",   message, 0x765E7680);
-    status &=     test_crc<crc32_xfer>("crc32_xfer",    message, 0xBD0BE338);
+    status &=          test_crc<crc32>("crc32",          message, 0xCBF43926);
+    status &=    test_crc<crc32_bzip2>("crc32_bzip2",    message, 0xFC891918);
+    status &=        test_crc<crc32_c>("crc32_c",        message, 0xE3069283);
+    status &=        test_crc<crc32_d>("crc32_d",        message, 0x87315576);
+    status &=    test_crc<crc32_mpeg2>("crc32_mpeg2",    message, 0x0376E6E7);
+    status &=    test_crc<crc32_posix>("crc32_posix",    message, 0x765E7680);
+    status &=        test_crc<crc32_q>("crc32_q",        message, 0x3010BF7F);
+    status &=   test_crc<crc32_jamcrc>("crc32_jamcrc",   message, 0x340BC6D9);
+    status &=     test_crc<crc32_xfer>("crc32_xfer",     message, 0xBD0BE338);
 
-
-
-    status &=    test_crc<crc64_ecma>("crc64_ecma",    message, 0x6C40DF5F0B497347U);
+    status &=    test_crc<crc64_ecma>("crc64_ecma",      message, 0x6C40DF5F0B497347U);
 
     if(status) {
         std::cout << "\nSuccess, all passed\n";
