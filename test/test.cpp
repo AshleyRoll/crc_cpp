@@ -32,8 +32,41 @@
 
 using namespace crc_cpp;
 
+template<typename T>
+bool test_reverse_bits(std::string name)
+{
+    bool status = true;
 
-template <typename TCrc>
+    int const bits = sizeof(T) * 8;
+
+    for(int i = 0; i < bits; i++) {
+        T const test = T(0x01u) << i;
+        T const expected = T(0x01u) << ((bits - 1) - i);
+
+        T const result = crc_cpp::util::reverse_bits<T>(test);
+
+        if(result != expected) {
+            std::cout << "FAIL " << name << "\n";
+            std::cout << "\tExpected: 0x"
+                      << std::hex << std::setfill('0') << std::setw(2 * sizeof(expected))
+                      << uint64_t(expected)
+                      << " Got: 0x"
+                      << std::hex << std::setfill('0') << std::setw(2 * sizeof(result))
+                      << uint64_t(result) << "\n";
+
+            status = false;
+        }
+    }
+
+    if(status) {
+        std::cout << "PASS " << name << "\n";
+    }
+
+    return status;
+}
+
+
+template<typename TCrc>
 bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::accumulator_type expected)
 {
     TCrc crc;   // initialised by construction
@@ -47,9 +80,12 @@ bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::acc
 
     if(result != expected) {
         std::cout << "FAIL " << name << "\n";
-        std::cout << "\tExpected: 0x" << std::hex << std::setfill('0')
-                  << std::setw(2 * sizeof(expected)) << uint64_t(expected)
-                  << " Got: 0x" << uint64_t(result) << "\n";
+        std::cout << "\tExpected: 0x"
+                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(expected))
+                  << uint64_t(expected)
+                  << " Got: 0x"
+                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(result))
+                  << uint64_t(result) << "\n";
     } else {
         std::cout << "PASS " << name << "\n";
     }
@@ -64,14 +100,23 @@ int main()
 
     bool status = true;
 
-    status = status &&   test_crc<crc64_ecma>("crc64_scma",   message, 0x6C40DF5F0B497347U);
-    status = status &&        test_crc<crc32>("crc32",        message, 0xCBF43926);
-    status = status &&  test_crc<crc32_posix>("crc32_posix",  message, 0x765E7680);
-    status = status &&   test_crc<crc32_xfer>("crc32_xfer",   message, 0xBD0BE338);
-    status = status &&   test_crc<crc16_ccit>("crc16_ccit",   message, 0x29B1);
-    status = status && test_crc<crc16_kermit>("crc16_kermit", message, 0x2189);
-    status = status &&         test_crc<crc8>("crc8",         message, 0xF4);
-    status = status &&    test_crc<crc8_rohc>("crc8_rohc",    message, 0xD0);
+    std::cout << "\nTesting Bit Reversal Helpers...\n";
+
+    status &= test_reverse_bits<uint64_t>("uint64_t");
+    status &= test_reverse_bits<uint32_t>("uint32_t");
+    status &= test_reverse_bits<uint8_t>("uint8_t");
+
+
+    std::cout << "\nTesting CRC Algorithms...\n";
+
+    status &= test_crc<crc64_ecma>("crc64_scma",   message, 0x6C40DF5F0B497347U);
+    status &= test_crc<crc32>("crc32",        message, 0xCBF43926);
+    status &= test_crc<crc32_posix>("crc32_posix",  message, 0x765E7680);
+    status &= test_crc<crc32_xfer>("crc32_xfer",   message, 0xBD0BE338);
+    status &= test_crc<crc16_ccit>("crc16_ccit",   message, 0x29B1);
+    status &= test_crc<crc16_kermit>("crc16_kermit", message, 0x2189);
+    status &= test_crc<crc8>("crc8",         message, 0xF4);
+    status &= test_crc<crc8_rohc>("crc8_rohc",    message, 0xD0);
 
     if(status) {
         std::cout << "\nSuccess, all passed\n";
