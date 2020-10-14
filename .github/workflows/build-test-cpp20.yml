@@ -22,11 +22,18 @@ jobs:
       - name: Build Clang C++20
         run: clang++ -O3 --std=c++20 -Wall -Wextra -I./include test/test.cpp -o test-clang-20
 
-      - name: Build GCC C++17
-        run: g++ -O3 --std=c++2a -Wall -Wextra -I./include test/test.cpp -o test-gcc-20
-
       - name: Test Clang C++20
         run: ./test-clang-20
+
+  build-gcc-cpp20:
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Build GCC C++17
+        run: g++ -O3 --std=c++2a -Wall -Wextra -I./include test/test.cpp -o test-gcc-20
 
       - name: Test GCC C++20
         run: ./test-gcc-20

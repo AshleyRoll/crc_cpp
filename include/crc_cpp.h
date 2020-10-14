@@ -277,7 +277,7 @@ namespace impl
             static constexpr TAccumulator polynomial = POLY;
             static constexpr TAccumulator initial_value = INITIAL;
             static constexpr TAccumulator xor_out_value = XOR_OUT;
-            static constexpr bool reverse = reverse;
+            static constexpr bool reverse = REVERSE;
 
             //
             // Update the accumulator with a new byte

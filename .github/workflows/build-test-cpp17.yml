@@ -13,7 +13,7 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  build-clang-cpp20:
+  build-clang-cpp17:
     runs-on: ubuntu-20.04
 
     steps:
@@ -23,11 +23,18 @@ jobs:
       - name: Build Clang C++17
         run: clang++ -O3 --std=c++17 -Wall -Wextra -I./include test/test.cpp -o test-clang-17
 
-      - name: Build GCC C++17
-        run: g++ -O3 --std=c++17 -Wall -Wextra -I./include test/test.cpp -o test-gcc-17
-
       - name: Test Clang C++17
         run: ./test-clang-17
+
+  build-gcc-cpp17:
+    runs-on: ubuntu-20.04
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Build GCC C++17
+        run: g++ -O3 --std=c++17 -Wall -Wextra -I./include test/test.cpp -o test-gcc-17
 
       - name: Test GCC C++17
         run: ./test-gcc-17
