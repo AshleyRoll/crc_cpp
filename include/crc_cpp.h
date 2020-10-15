@@ -1,3 +1,5 @@
+#ifndef CRC_CPP_H_INCLUDED
+#define CRC_CPP_H_INCLUDED
 /*
  * MIT License
  *
@@ -382,3 +384,5 @@ using crc64_ecma =      impl::crc<uint64_t, 0x42f0e1eba9ea3693, 0x00000000000000
 
 
 }   // namespace crc_cpp
+
+#endif // CRC_CPP_H_INCLUDED
