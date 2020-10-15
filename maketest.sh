@@ -3,12 +3,46 @@
 #stop on first error result
 set -e
 
-echo "Building test.cpp"
+STD=20
 
-clang++ -O3 --std=c++20 -Wall -Wextra -I./include test/test.cpp -o bin/test
+function usage {
+    echo ""
+    echo "maketest.sh [--std <20 | 17>]"
+    echo ""
+    echo "  --std    Select the C++ standard to build for."
+    echo "           Default: 20."
+    echo ""
+}
 
+
+while [[ $# -gt 0 ]]
+do
+    case $1 in
+        --std)
+            STD=$2
+            shift
+            shift
+            ;;
+        *)
+            usage
+            exit
+            ;;
+    esac
+done
+
+STDARG="--std=c++${STD}"
+
+echo "-----------------------------------------------------"
+echo "Building test.cpp for ${STDARG}"
+
+time clang++ -O3 ${STDARG} -Wall -Wextra -I./include test/test.cpp -o bin/test
+
+
+echo ""
+echo "-----------------------------------------------------"
 echo "Running Tests"
-bin/test
+
+time bin/test
 
 
 

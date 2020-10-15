@@ -315,7 +315,7 @@ namespace impl
         // table builder for C++17
 
         // recursive case
-        template<uint8_t INDEX = 0, TAccumulator ...D>
+        template<uint16_t INDEX = 0, TAccumulator ...D>
         struct table_builder : table_builder<INDEX+1, D..., policy::generate_entry(INDEX)> {};
 
         // termination of recursion at table length
