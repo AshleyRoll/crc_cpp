@@ -7,13 +7,17 @@ STD=20
 
 function usage {
     echo ""
-    echo "maketest.sh [--std <20 | 17>]"
+    echo "maketest.sh [--std <20 | 17>] [--clang] [--gcc]"
     echo ""
     echo "  --std    Select the C++ standard to build for."
-    echo "           Default: 20."
+    echo "           Default: ${STD}."
+    echo "  --clang  Compile with clang (default)"
+    echo "  --gcc    Compile with gcc"
+    echo "           Note: last parameter of --clang or --gcc is applied"
     echo ""
 }
 
+USECLANG=1
 
 while [[ $# -gt 0 ]]
 do
@@ -21,6 +25,14 @@ do
         --std)
             STD=$2
             shift
+            shift
+            ;;
+        --clang)
+            USECLANG=1
+            shift
+            ;;
+        --gcc)
+            USECLANG=0
             shift
             ;;
         *)
@@ -31,9 +43,13 @@ do
 done
 
 STDARG="--std=c++${STD}"
+COMPILER=clang++
+[[ ${USECLANG} -eq 0 ]] && COMPILER=g++
+
 
 echo "-----------------------------------------------------"
-echo "Building test.cpp for ${STDARG}"
+echo "Building test.cpp with ${COMPILER} ${STDARG}"
+
 
 time clang++ -O3 ${STDARG} -Wall -Wextra -I./include test/test.cpp -o bin/test
 
