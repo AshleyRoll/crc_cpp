@@ -97,20 +97,20 @@ bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::alg
 //
 // Helper to test a family of the same algorithm implemented with different table sizes
 //
-template<template<const std::size_t> class TCrc>
+template<template<const table_size> class TCrc>
 bool test_crc(
         std::string name,
         std::vector<uint8_t> message,
         // hack to get to the accumulator type by fully quallifying one of the instances
-        typename TCrc<8>::algorithm::accumulator_type expected
+        typename TCrc<table_size::small>::algorithm::accumulator_type expected
         )
 {
     bool result = true;
 
     // expand into the supported table sizes for the family
-    result &= test_crc<TCrc<2>>(name+"/2", message, expected);
-    result &= test_crc<TCrc<4>>(name+"/4", message, expected);
-    result &= test_crc<TCrc<8>>(name+"/8", message, expected);
+    result &=  test_crc<TCrc<table_size::tiny>>(name+" (tiny)", message, expected);
+    result &= test_crc<TCrc<table_size::small>>(name+" (small)", message, expected);
+    result &= test_crc<TCrc<table_size::large>>(name+" (large)", message, expected);
 
     return true;
 }

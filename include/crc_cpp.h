@@ -33,6 +33,14 @@
 
 namespace crc_cpp
 {
+    // Select the table size to use. This trades speed for size.
+    enum class table_size
+    {
+        tiny,   // 4 Entries, 2 bits per chunk
+        small,  // 16 Entries, 4 bits per chunk
+        large   // 256 Entries, 8 bits per chunk
+    };
+
 
 namespace util
 {
@@ -83,16 +91,14 @@ namespace util
 
 namespace impl
 {
-
-
     //
     // Define the basic traits we use in our CRC accumulators and Table Lookup
     //
-    template <typename TAccumulator, const std::size_t BITS_PER_CHUNK>
+    template <typename TAccumulator, const table_size TABLE_SIZE>
     struct crc_traits {};
 
     template <typename TAccumulator>
-    struct crc_traits<TAccumulator, 2>
+    struct crc_traits<TAccumulator, table_size::tiny>
     {
         static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
         static constexpr std::size_t CHUNK_BITS = 2;
@@ -103,7 +109,7 @@ namespace impl
     };
 
     template <typename TAccumulator>
-    struct crc_traits<TAccumulator, 4>
+    struct crc_traits<TAccumulator, table_size::small>
     {
         static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
         static constexpr std::size_t CHUNK_BITS = 4;
@@ -114,7 +120,7 @@ namespace impl
     };
 
     template <typename TAccumulator>
-    struct crc_traits<TAccumulator, 8>
+    struct crc_traits<TAccumulator, table_size::large>
     {
         static constexpr std::size_t ACCUMULATOR_BITS = sizeof(TAccumulator) * 8;
         static constexpr std::size_t CHUNK_BITS = 8;
@@ -131,23 +137,24 @@ namespace impl
     // Reverse rotation means that we clock in data LSB->MSB and rotate the Accumulator register right
     //
 
-    template <typename TAccumulator, const std::size_t BITS_PER_CHUNK, TAccumulator POLY>
+    template <typename TAccumulator, const table_size TABLE_SIZE, TAccumulator POLY>
     struct crc_forward_policy
     {
-        using traits = crc_traits<TAccumulator, BITS_PER_CHUNK>;
+        using traits = crc_traits<TAccumulator, TABLE_SIZE>;
         static constexpr TAccumulator POLYNOMIAL = POLY;
 
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
-            return update_impl<BITS_PER_CHUNK>(crc, value, table);
+            return update_impl<TABLE_SIZE>(crc, value, table);
         }
 
-        template<const std::size_t BPC>
+        template<const table_size>
         static constexpr TAccumulator update_impl(TAccumulator crc, uint8_t value, typename traits::table_type const &table);
 
         template<>
-        static constexpr TAccumulator update_impl<2>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::tiny>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, (value >> (traits::CHUNK_BITS*3)) & traits::CHUNK_MASK, table);     // high chunk
             crc = update_chunk(crc, (value >> (traits::CHUNK_BITS*2)) & traits::CHUNK_MASK, table);
@@ -157,7 +164,8 @@ namespace impl
         }
 
         template<>
-        static constexpr TAccumulator update_impl<4>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::small>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value >> traits::CHUNK_BITS, table);     // high nibble
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);      // low nibble
@@ -165,13 +173,15 @@ namespace impl
         }
 
         template<>
-        static constexpr TAccumulator update_impl<8>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::large>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
             return crc;
         }
 
-        static constexpr TAccumulator update_chunk(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_chunk(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
             value &= traits::CHUNK_MASK;
@@ -217,22 +227,23 @@ namespace impl
         }
     };
 
-    template <typename TAccumulator, const std::size_t BITS_PER_CHUNK, TAccumulator POLY>
+    template <typename TAccumulator, const table_size TABLE_SIZE, TAccumulator POLY>
     struct crc_reverse_policy
     {
-        using traits = crc_traits<TAccumulator, BITS_PER_CHUNK>;
+        using traits = crc_traits<TAccumulator, TABLE_SIZE>;
         static constexpr TAccumulator POLYNOMIAL = POLY;
 
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
-            return update_impl<BITS_PER_CHUNK>(crc, value, table);
+            return update_impl<TABLE_SIZE>(crc, value, table);
         }
 
-        template<const std::size_t BPC>
+        template<const table_size>
         static constexpr TAccumulator update_impl(TAccumulator crc, uint8_t value, typename traits::table_type const &table);
 
         template<>
-        static constexpr TAccumulator update_impl<2>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::tiny>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);                                 // low chunk
             crc = update_chunk(crc, (value >> (traits::CHUNK_BITS*1)) & traits::CHUNK_MASK, table);
@@ -242,7 +253,8 @@ namespace impl
         }
 
         template<>
-        static constexpr TAccumulator update_impl<4>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::small>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);      // low nibble
             crc = update_chunk(crc, value >> traits::CHUNK_BITS, table);     // high nibble
@@ -250,13 +262,15 @@ namespace impl
         }
 
         template<>
-        static constexpr TAccumulator update_impl<8>(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_impl<table_size::large>(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
             return crc;
         }
 
-        static constexpr TAccumulator update_chunk(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
+        static constexpr TAccumulator update_chunk(
+                TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
             value &= traits::CHUNK_MASK;
@@ -308,16 +322,16 @@ namespace impl
     //
     // This is can be a large reduction of table space storage for embedded devices.
     //
-    template <typename TAccumulator, const TAccumulator POLY, const bool REVERSE, const std::size_t BITS_PER_CHUNK,
+    template <typename TAccumulator, const TAccumulator POLY, const bool REVERSE, const table_size TABLE_SIZE,
               typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
     class crc_chunk_table
     {
     public:
-        using traits = crc_traits<TAccumulator, BITS_PER_CHUNK>;
-        using policy = typename
-            std::conditional<REVERSE,
-                crc_reverse_policy<TAccumulator, BITS_PER_CHUNK, POLY>,
-                crc_forward_policy<TAccumulator, BITS_PER_CHUNK, POLY>>::type;
+        using policy = typename std::conditional<REVERSE,
+                crc_reverse_policy<TAccumulator, TABLE_SIZE, POLY>,
+                crc_forward_policy<TAccumulator, TABLE_SIZE, POLY>>::type;
+
+        using traits = typename policy::traits;
 
 
         // update the given crc accumulator with the value
@@ -393,7 +407,7 @@ namespace impl
     //
     // The generic CRC accumulator that is table driven
     //
-    template <typename TAlgorithm, const std::size_t BITS_PER_CHUNK>
+    template <typename TAlgorithm, const table_size TABLE_SIZE>
     class crc
     {
         public:
@@ -417,7 +431,7 @@ namespace impl
 
 
         private:
-            using table_impl = crc_chunk_table<accumulator_type, algorithm::polynomial, algorithm::reverse, BITS_PER_CHUNK>;
+            using table_impl = crc_chunk_table<accumulator_type, algorithm::polynomial, algorithm::reverse, TABLE_SIZE>;
 
             accumulator_type m_Crc = table_impl::make_initial_value(algorithm::initial_value);
     };
@@ -491,52 +505,53 @@ namespace alg
 
 namespace family
 {
-template<const std::size_t CHUNK_BITS> class crc8            : public impl::crc<alg::crc8, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_cdma2000   : public impl::crc<alg::crc8_cdma2000, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_darc       : public impl::crc<alg::crc8_darc, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_dvbs2      : public impl::crc<alg::crc8_dvbs2, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_ebu        : public impl::crc<alg::crc8_ebu, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_icode      : public impl::crc<alg::crc8_icode, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_itu        : public impl::crc<alg::crc8_itu, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_maxim      : public impl::crc<alg::crc8_maxim, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_rohc       : public impl::crc<alg::crc8_rohc, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc8_wcdma      : public impl::crc<alg::crc8_wcdma, CHUNK_BITS>{};
 
-template<const std::size_t CHUNK_BITS> class crc16_ccit      : public impl::crc<alg::crc16_ccit, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_arc       : public impl::crc<alg::crc16_arc, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_augccit   : public impl::crc<alg::crc16_augccit, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_buypass   : public impl::crc<alg::crc16_buypass, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_cdma2000  : public impl::crc<alg::crc16_cdma2000, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_dds110    : public impl::crc<alg::crc16_dds110, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_dectr     : public impl::crc<alg::crc16_dectr, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_dectx     : public impl::crc<alg::crc16_dectx, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_dnp       : public impl::crc<alg::crc16_dnp, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_en13757   : public impl::crc<alg::crc16_en13757, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_genibus   : public impl::crc<alg::crc16_genibus, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_maxim     : public impl::crc<alg::crc16_maxim, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_mcrf4xx   : public impl::crc<alg::crc16_mcrf4xx, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_riello    : public impl::crc<alg::crc16_riello, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_t10dif    : public impl::crc<alg::crc16_t10dif, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_teledisk  : public impl::crc<alg::crc16_teledisk, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_tms37157  : public impl::crc<alg::crc16_tms37157, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_usb       : public impl::crc<alg::crc16_usb, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_a         : public impl::crc<alg::crc16_a, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_kermit    : public impl::crc<alg::crc16_kermit, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_modbus    : public impl::crc<alg::crc16_modbus, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_x25       : public impl::crc<alg::crc16_x25, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc16_xmodem    : public impl::crc<alg::crc16_xmodem, CHUNK_BITS>{};
+template<const table_size TABLE_SIZE> class crc8            : public impl::crc<alg::crc8, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_cdma2000   : public impl::crc<alg::crc8_cdma2000, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_darc       : public impl::crc<alg::crc8_darc, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_dvbs2      : public impl::crc<alg::crc8_dvbs2, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_ebu        : public impl::crc<alg::crc8_ebu, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_icode      : public impl::crc<alg::crc8_icode, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_itu        : public impl::crc<alg::crc8_itu, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_maxim      : public impl::crc<alg::crc8_maxim, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_rohc       : public impl::crc<alg::crc8_rohc, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc8_wcdma      : public impl::crc<alg::crc8_wcdma, TABLE_SIZE>{};
 
-template<const std::size_t CHUNK_BITS> class crc32           : public impl::crc<alg::crc32, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_bzip2     : public impl::crc<alg::crc32_bzip2, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_c         : public impl::crc<alg::crc32_c, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_d         : public impl::crc<alg::crc32_d, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_mpeg2     : public impl::crc<alg::crc32_mpeg2, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_posix     : public impl::crc<alg::crc32_posix, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_q         : public impl::crc<alg::crc32_q, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_jamcrc    : public impl::crc<alg::crc32_jamcrc, CHUNK_BITS>{};
-template<const std::size_t CHUNK_BITS> class crc32_xfer      : public impl::crc<alg::crc32_xfer, CHUNK_BITS>{};
+template<const table_size TABLE_SIZE> class crc16_ccit      : public impl::crc<alg::crc16_ccit, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_arc       : public impl::crc<alg::crc16_arc, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_augccit   : public impl::crc<alg::crc16_augccit, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_buypass   : public impl::crc<alg::crc16_buypass, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_cdma2000  : public impl::crc<alg::crc16_cdma2000, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_dds110    : public impl::crc<alg::crc16_dds110, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_dectr     : public impl::crc<alg::crc16_dectr, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_dectx     : public impl::crc<alg::crc16_dectx, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_dnp       : public impl::crc<alg::crc16_dnp, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_en13757   : public impl::crc<alg::crc16_en13757, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_genibus   : public impl::crc<alg::crc16_genibus, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_maxim     : public impl::crc<alg::crc16_maxim, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_mcrf4xx   : public impl::crc<alg::crc16_mcrf4xx, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_riello    : public impl::crc<alg::crc16_riello, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_t10dif    : public impl::crc<alg::crc16_t10dif, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_teledisk  : public impl::crc<alg::crc16_teledisk, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_tms37157  : public impl::crc<alg::crc16_tms37157, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_usb       : public impl::crc<alg::crc16_usb, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_a         : public impl::crc<alg::crc16_a, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_kermit    : public impl::crc<alg::crc16_kermit, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_modbus    : public impl::crc<alg::crc16_modbus, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_x25       : public impl::crc<alg::crc16_x25, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc16_xmodem    : public impl::crc<alg::crc16_xmodem, TABLE_SIZE>{};
 
-template<const std::size_t CHUNK_BITS> class crc64_ecma      : public impl::crc<alg::crc64_ecma, CHUNK_BITS>{};
+template<const table_size TABLE_SIZE> class crc32           : public impl::crc<alg::crc32, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_bzip2     : public impl::crc<alg::crc32_bzip2, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_c         : public impl::crc<alg::crc32_c, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_d         : public impl::crc<alg::crc32_d, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_mpeg2     : public impl::crc<alg::crc32_mpeg2, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_posix     : public impl::crc<alg::crc32_posix, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_q         : public impl::crc<alg::crc32_q, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_jamcrc    : public impl::crc<alg::crc32_jamcrc, TABLE_SIZE>{};
+template<const table_size TABLE_SIZE> class crc32_xfer      : public impl::crc<alg::crc32_xfer, TABLE_SIZE>{};
+
+template<const table_size TABLE_SIZE> class crc64_ecma      : public impl::crc<alg::crc64_ecma, TABLE_SIZE>{};
 
 } // namespace family
 
@@ -548,57 +563,57 @@ template<const std::size_t CHUNK_BITS> class crc64_ecma      : public impl::crc<
 //------------------------------------------------------------------------
 
 
-using crc8 =           impl::crc<alg::crc8, 4>;
-using crc8_cdma2000 =  impl::crc<alg::crc8_cdma2000, 4>;
-using crc8_darc =      impl::crc<alg::crc8_darc, 4>;
-using crc8_dvbs2 =     impl::crc<alg::crc8_dvbs2, 4>;
-using crc8_ebu =       impl::crc<alg::crc8_ebu, 4>;
-using crc8_icode =     impl::crc<alg::crc8_icode, 4>;
-using crc8_itu =       impl::crc<alg::crc8_itu, 4>;
-using crc8_maxim =     impl::crc<alg::crc8_maxim, 4>;
-using crc8_rohc =      impl::crc<alg::crc8_rohc, 4>;
-using crc8_wcdma =     impl::crc<alg::crc8_wcdma, 4>;
+using crc8 =           family::crc8<table_size::small>;
+using crc8_cdma2000 =  family::crc8_cdma2000<table_size::small>;
+using crc8_darc =      family::crc8_darc<table_size::small>;
+using crc8_dvbs2 =     family::crc8_dvbs2<table_size::small>;
+using crc8_ebu =       family::crc8_ebu<table_size::small>;
+using crc8_icode =     family::crc8_icode<table_size::small>;
+using crc8_itu =       family::crc8_itu<table_size::small>;
+using crc8_maxim =     family::crc8_maxim<table_size::small>;
+using crc8_rohc =      family::crc8_rohc<table_size::small>;
+using crc8_wcdma =     family::crc8_wcdma<table_size::small>;
 
 //
-using crc16_ccit =     impl::crc<alg::crc16_ccit, 4>;
-using crc16_arc =      impl::crc<alg::crc16_arc, 4>;
-using crc16_augccit =  impl::crc<alg::crc16_augccit, 4>;
-using crc16_buypass =  impl::crc<alg::crc16_buypass, 4>;
-using crc16_cdma2000 = impl::crc<alg::crc16_cdma2000, 4>;
-using crc16_dds110 =   impl::crc<alg::crc16_dds110, 4>;
-using crc16_dectr =    impl::crc<alg::crc16_dectr, 4>;
-using crc16_dectx =    impl::crc<alg::crc16_dectx, 4>;
-using crc16_dnp =      impl::crc<alg::crc16_dnp, 4>;
-using crc16_en13757 =  impl::crc<alg::crc16_en13757, 4>;
-using crc16_genibus =  impl::crc<alg::crc16_genibus, 4>;
-using crc16_maxim =    impl::crc<alg::crc16_maxim, 4>;
-using crc16_mcrf4xx =  impl::crc<alg::crc16_mcrf4xx, 4>;
-using crc16_riello =   impl::crc<alg::crc16_riello, 4>;
-using crc16_t10dif =   impl::crc<alg::crc16_t10dif, 4>;
-using crc16_teledisk = impl::crc<alg::crc16_teledisk, 4>;
-using crc16_tms37157 = impl::crc<alg::crc16_tms37157, 4>;
-using crc16_usb =      impl::crc<alg::crc16_usb, 4>;
-using crc16_a =        impl::crc<alg::crc16_a, 4>;
-using crc16_kermit =   impl::crc<alg::crc16_kermit, 4>;
-using crc16_modbus =   impl::crc<alg::crc16_modbus, 4>;
-using crc16_x25 =      impl::crc<alg::crc16_x25, 4>;
-using crc16_xmodem =   impl::crc<alg::crc16_xmodem, 4>;
+using crc16_ccit =     family::crc16_ccit<table_size::small>;
+using crc16_arc =      family::crc16_arc<table_size::small>;
+using crc16_augccit =  family::crc16_augccit<table_size::small>;
+using crc16_buypass =  family::crc16_buypass<table_size::small>;
+using crc16_cdma2000 = family::crc16_cdma2000<table_size::small>;
+using crc16_dds110 =   family::crc16_dds110<table_size::small>;
+using crc16_dectr =    family::crc16_dectr<table_size::small>;
+using crc16_dectx =    family::crc16_dectx<table_size::small>;
+using crc16_dnp =      family::crc16_dnp<table_size::small>;
+using crc16_en13757 =  family::crc16_en13757<table_size::small>;
+using crc16_genibus =  family::crc16_genibus<table_size::small>;
+using crc16_maxim =    family::crc16_maxim<table_size::small>;
+using crc16_mcrf4xx =  family::crc16_mcrf4xx<table_size::small>;
+using crc16_riello =   family::crc16_riello<table_size::small>;
+using crc16_t10dif =   family::crc16_t10dif<table_size::small>;
+using crc16_teledisk = family::crc16_teledisk<table_size::small>;
+using crc16_tms37157 = family::crc16_tms37157<table_size::small>;
+using crc16_usb =      family::crc16_usb<table_size::small>;
+using crc16_a =        family::crc16_a<table_size::small>;
+using crc16_kermit =   family::crc16_kermit<table_size::small>;
+using crc16_modbus =   family::crc16_modbus<table_size::small>;
+using crc16_x25 =      family::crc16_x25<table_size::small>;
+using crc16_xmodem =   family::crc16_xmodem<table_size::small>;
 
 
 
 //
-using crc32 =          impl::crc<alg::crc32, 4>;
-using crc32_bzip2 =    impl::crc<alg::crc32_bzip2, 4>;
-using crc32_c =        impl::crc<alg::crc32_c, 4>;
-using crc32_d =        impl::crc<alg::crc32_d, 4>;
-using crc32_mpeg2 =    impl::crc<alg::crc32_mpeg2, 4>;
-using crc32_posix =    impl::crc<alg::crc32_posix, 4>;
-using crc32_q =        impl::crc<alg::crc32_q, 4>;
-using crc32_jamcrc =   impl::crc<alg::crc32_jamcrc, 4>;
-using crc32_xfer =     impl::crc<alg::crc32_xfer, 4>;
+using crc32 =          family::crc32<table_size::small>;
+using crc32_bzip2 =    family::crc32_bzip2<table_size::small>;
+using crc32_c =        family::crc32_c<table_size::small>;
+using crc32_d =        family::crc32_d<table_size::small>;
+using crc32_mpeg2 =    family::crc32_mpeg2<table_size::small>;
+using crc32_posix =    family::crc32_posix<table_size::small>;
+using crc32_q =        family::crc32_q<table_size::small>;
+using crc32_jamcrc =   family::crc32_jamcrc<table_size::small>;
+using crc32_xfer =     family::crc32_xfer<table_size::small>;
 
 //
-using crc64_ecma =     impl::crc<alg::crc64_ecma, 4>;
+using crc64_ecma =     family::crc64_ecma<table_size::small>;
 
 
 
