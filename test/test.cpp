@@ -72,6 +72,9 @@ bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::alg
 {
     TCrc crc;   // initialised by construction
 
+    // Assert that the crc register is only the size of accululator.
+    static_assert(sizeof(TCrc) == sizeof(typename TCrc::algorithm::accumulator_type));
+
     for(auto c : message)
     {
         crc.update(c);
@@ -115,6 +118,13 @@ bool test_crc(
     return true;
 }
 
+
+class mycrc : public crc_cpp::impl::crc<
+              crc_cpp::impl::crc_algorithm<uint32_t, 0xDEADBEEF, 0x00C0DE00, 0x00000000, false>,
+              crc_cpp::table_size::small
+              >{};
+
+
 int main()
 {
     bool status = true;
@@ -134,6 +144,7 @@ int main()
     // Test vector and result from https://crccalc.com
     // except crc64_ecma which comes from https://etlcppp.com
     std::vector<uint8_t> message{'1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
 
     // we are exeucting the tests per family (table size set, same algorithm).
     status &=           test_crc<family::crc8>("crc8",           message, 0xF4);
