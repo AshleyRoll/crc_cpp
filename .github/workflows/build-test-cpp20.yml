@@ -7,9 +7,9 @@ name: C++20 Test
 # events but only for the main branch
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
 
 jobs:
   build-clang-cpp20:
