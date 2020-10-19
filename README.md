@@ -91,7 +91,7 @@ class mycrc : public crc_cpp::impl::crc<
 Then just use it like any other one.
 
 If the reverse parameter is `false`, the bits are rotated through the register
-MSG to LSB (rotate left). If it is `true` the reverse happens and bits are shifted through
+MSB to LSB (rotate left). If it is `true` the reverse happens and bits are shifted through
 LSB to MSB (rotate right).
 
 # Limitations
@@ -103,4 +103,6 @@ or 64 bits.
 # Future
 
 - Try to back-port to older C++ standards (help appreciated)
+
+
 
