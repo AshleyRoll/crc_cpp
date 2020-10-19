@@ -88,7 +88,7 @@ namespace impl
         using traits = crc_traits<TAccumulator, TABLE_SIZE>;
 
 
-        static constexpr TAccumulator update_impl_tiny(
+        [[nodiscard]] static constexpr TAccumulator update_impl_tiny(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, (value >> (traits::CHUNK_BITS*3)) & traits::CHUNK_MASK, table);     // high chunk
@@ -98,7 +98,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator update_impl_small(
+        [[nodiscard]] static constexpr TAccumulator update_impl_small(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value >> traits::CHUNK_BITS, table);     // high nibble
@@ -106,14 +106,14 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator update_impl_large(
+        [[nodiscard]] static constexpr TAccumulator update_impl_large(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
             return crc;
         }
 
-        static constexpr TAccumulator update_chunk(
+        [[nodiscard]] static constexpr TAccumulator update_chunk(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
@@ -136,7 +136,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
+        [[nodiscard]] static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
         {
             // initialise with the register in the upper bits
             TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS);
@@ -154,7 +154,7 @@ namespace impl
             return entry;
         }
 
-        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        [[nodiscard]] static constexpr TAccumulator make_initial_value(TAccumulator init)
         {
             return init;
         }
@@ -166,7 +166,7 @@ namespace impl
         using traits = crc_traits<TAccumulator, TABLE_SIZE>;
 
 
-        static constexpr TAccumulator update_impl_tiny(
+        [[nodiscard]] static constexpr TAccumulator update_impl_tiny(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);                                 // low chunk
@@ -176,7 +176,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator update_impl_small(
+        [[nodiscard]] static constexpr TAccumulator update_impl_small(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);      // low nibble
@@ -184,14 +184,14 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator update_impl_large(
+        [[nodiscard]] static constexpr TAccumulator update_impl_large(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
             return crc;
         }
 
-        static constexpr TAccumulator update_chunk(
+        [[nodiscard]] static constexpr TAccumulator update_chunk(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             // ensure we have only 4 bits
@@ -214,7 +214,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
+        [[nodiscard]] static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
         {
             // initialise with the register in the lower bits
             TAccumulator entry = TAccumulator(index);
@@ -232,7 +232,7 @@ namespace impl
             return entry;
         }
 
-        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        [[nodiscard]] static constexpr TAccumulator make_initial_value(TAccumulator init)
         {
             return util::reverse_bits(init);
         }
@@ -260,7 +260,7 @@ namespace impl
 
 
         // update the given crc accumulator with the value
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
+        [[nodiscard]] static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
             if constexpr(TABLE_SIZE == table_size::tiny) {
                 return policy::update_impl_tiny(crc, value, m_Table);
@@ -275,7 +275,7 @@ namespace impl
 
         // the crc accumulator initial value may need to be modified by the policy
         // to account for rotation direction
-        static constexpr TAccumulator make_initial_value(TAccumulator init)
+        [[nodiscard]] static constexpr TAccumulator make_initial_value(TAccumulator init)
         {
             return policy::make_initial_value(init);
         }
@@ -286,7 +286,7 @@ namespace impl
 // otherwise we will attempt to use a static table builder metaprogramming pattern
 // NOTE: Only C++17 will work, other constexpr code prevents C++14 and below working.
 #if __cplusplus >= 202002L
-        static constexpr typename traits::table_type Generate()
+        [[nodiscard]] static constexpr typename traits::table_type Generate()
         {
             typename traits::table_type table;
 
@@ -355,7 +355,7 @@ namespace impl
             //
             // Extract the final value of the accumulator.
             //
-            accumulator_type final() { return m_Crc ^ algorithm::xor_out_value; }
+            [[nodiscard]] accumulator_type final() { return m_Crc ^ algorithm::xor_out_value; }
 
             //
             // Reset the state of the accumulator back to the INITIAL value.

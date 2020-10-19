@@ -36,7 +36,7 @@ namespace util
     //
     template<typename T> constexpr T reverse_bits(T value);
 
-    template<> constexpr uint8_t reverse_bits(uint8_t value)
+    template<> [[nodiscard]] constexpr uint8_t reverse_bits(uint8_t value)
     {
         value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);
         value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);
@@ -44,7 +44,7 @@ namespace util
         return value;
     }
 
-    template<> constexpr uint16_t reverse_bits(uint16_t value)
+    template<> [[nodiscard]] constexpr uint16_t reverse_bits(uint16_t value)
     {
         value = ((value & 0xAAAA) >> 1) | ((value & 0x5555) << 1);
         value = ((value & 0xCCCC) >> 2) | ((value & 0x3333) << 2);
@@ -53,7 +53,7 @@ namespace util
         return value;
     }
 
-    template<> constexpr uint32_t reverse_bits(uint32_t value)
+    template<> [[nodiscard]] constexpr uint32_t reverse_bits(uint32_t value)
     {
         value = ((value & 0xAAAAAAAA) >> 1) | ((value & 0x55555555) << 1);
         value = ((value & 0xCCCCCCCC) >> 2) | ((value & 0x33333333) << 2);
@@ -63,7 +63,7 @@ namespace util
         return value;
     }
 
-    template<> constexpr uint64_t reverse_bits(uint64_t value)
+    template<> [[nodiscard]] constexpr uint64_t reverse_bits(uint64_t value)
     {
         value = ((value & 0xAAAAAAAAAAAAAAAA) >>  1) | ((value & 0x5555555555555555) <<  1);
         value = ((value & 0xCCCCCCCCCCCCCCCC) >>  2) | ((value & 0x3333333333333333) <<  2);
