@@ -47,18 +47,22 @@ COMPILER=clang++
 [[ ${USECLANG} -eq 0 ]] && COMPILER=g++
 
 
+BIN="bin"
+OUT="${BIN}/test-${COMPILER}${STD}"
+
 echo "-----------------------------------------------------"
 echo "Building test.cpp with ${COMPILER} ${STDARG}"
 
+mkdir -p ${BIN}
 
-time clang++ -O3 ${STDARG} -Wall -Wextra -I./include test/test.cpp -o bin/test
+time clang++ -O3 ${STDARG} -Wall -Wextra -I./include test/test.cpp -o ${OUT}
 
 
 echo ""
 echo "-----------------------------------------------------"
 echo "Running Tests"
 
-time bin/test
+time ${OUT}
 
 
 
