@@ -68,12 +68,12 @@ bool test_reverse_bits(std::string name)
 
 
 template<typename TCrc>
-bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::algorithm::accumulator_type expected)
+bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::accumulator_type expected)
 {
     TCrc crc;   // initialised by construction
 
     // Assert that the crc register is only the size of accululator.
-    static_assert(sizeof(TCrc) == sizeof(typename TCrc::algorithm::accumulator_type));
+    static_assert(sizeof(TCrc) == sizeof(typename TCrc::accumulator_type));
 
     for(auto c : message)
     {
@@ -105,7 +105,7 @@ bool test_crc(
         std::string name,
         std::vector<uint8_t> message,
         // hack to get to the accumulator type by fully quallifying one of the instances
-        typename TCrc<table_size::small>::algorithm::accumulator_type expected
+        typename TCrc<table_size::small>::accumulator_type expected
         )
 {
     bool result = true;
@@ -117,12 +117,6 @@ bool test_crc(
 
     return true;
 }
-
-
-class mycrc : public crc_cpp::impl::crc<
-              crc_cpp::impl::crc_algorithm<uint32_t, 0xDEADBEEF, 0x00C0DE00, 0x00000000, false>,
-              crc_cpp::table_size::small
-              >{};
 
 
 int main()
