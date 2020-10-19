@@ -82,23 +82,13 @@ namespace impl
     // Reverse rotation means that we clock in data LSB->MSB and rotate the Accumulator register right
     //
 
-    template <typename TAccumulator, const table_size TABLE_SIZE, TAccumulator POLY>
+    template <typename TAccumulator, const table_size TABLE_SIZE>
     struct crc_forward_policy
     {
         using traits = crc_traits<TAccumulator, TABLE_SIZE>;
-        static constexpr TAccumulator POLYNOMIAL = POLY;
 
 
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
-        {
-            return update_impl<TABLE_SIZE>(crc, value, table);
-        }
-
-        template<const table_size>
-        static constexpr TAccumulator update_impl(TAccumulator crc, uint8_t value, typename traits::table_type const &table);
-
-        template<>
-        static constexpr TAccumulator update_impl<table_size::tiny>(
+        static constexpr TAccumulator update_impl_tiny(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, (value >> (traits::CHUNK_BITS*3)) & traits::CHUNK_MASK, table);     // high chunk
@@ -108,8 +98,7 @@ namespace impl
             return crc;
         }
 
-        template<>
-        static constexpr TAccumulator update_impl<table_size::small>(
+        static constexpr TAccumulator update_impl_small(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value >> traits::CHUNK_BITS, table);     // high nibble
@@ -117,8 +106,7 @@ namespace impl
             return crc;
         }
 
-        template<>
-        static constexpr TAccumulator update_impl<table_size::large>(
+        static constexpr TAccumulator update_impl_large(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
@@ -148,7 +136,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator generate_entry(uint8_t index)
+        static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
         {
             // initialise with the register in the upper bits
             TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS);
@@ -157,7 +145,7 @@ namespace impl
             {
                 // We are processing MSBs / rotating left so we need to check the high bit
                 if(entry & (TAccumulator(1u) << (traits::ACCUMULATOR_BITS - 1))) {
-                    entry = (entry << 1) ^ POLYNOMIAL;
+                    entry = (entry << 1) ^ polynomial;
                 } else {
                     entry = (entry << 1);
                 }
@@ -172,22 +160,13 @@ namespace impl
         }
     };
 
-    template <typename TAccumulator, const table_size TABLE_SIZE, TAccumulator POLY>
+    template <typename TAccumulator, const table_size TABLE_SIZE>
     struct crc_reverse_policy
     {
         using traits = crc_traits<TAccumulator, TABLE_SIZE>;
-        static constexpr TAccumulator POLYNOMIAL = POLY;
 
-        static constexpr TAccumulator update(TAccumulator crc, uint8_t value, typename traits::table_type const &table)
-        {
-            return update_impl<TABLE_SIZE>(crc, value, table);
-        }
 
-        template<const table_size>
-        static constexpr TAccumulator update_impl(TAccumulator crc, uint8_t value, typename traits::table_type const &table);
-
-        template<>
-        static constexpr TAccumulator update_impl<table_size::tiny>(
+        static constexpr TAccumulator update_impl_tiny(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);                                 // low chunk
@@ -197,8 +176,7 @@ namespace impl
             return crc;
         }
 
-        template<>
-        static constexpr TAccumulator update_impl<table_size::small>(
+        static constexpr TAccumulator update_impl_small(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value & traits::CHUNK_MASK, table);      // low nibble
@@ -206,8 +184,7 @@ namespace impl
             return crc;
         }
 
-        template<>
-        static constexpr TAccumulator update_impl<table_size::large>(
+        static constexpr TAccumulator update_impl_large(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
             crc = update_chunk(crc, value, table); // full byte
@@ -237,7 +214,7 @@ namespace impl
             return crc;
         }
 
-        static constexpr TAccumulator generate_entry(uint8_t index)
+        static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
         {
             // initialise with the register in the lower bits
             TAccumulator entry = TAccumulator(index);
@@ -246,7 +223,7 @@ namespace impl
             {
                 // we are processing LSBs/rotating right
                 if(entry & 0x1u) {
-                    entry = (entry >> 1) ^ util::reverse_bits(POLYNOMIAL);
+                    entry = (entry >> 1) ^ util::reverse_bits(polynomial);
                 } else {
                     entry = (entry >> 1);
                 }
@@ -267,14 +244,17 @@ namespace impl
     //
     // This is can be a large reduction of table space storage for embedded devices.
     //
-    template <typename TAccumulator, const TAccumulator POLY, const bool REVERSE, const table_size TABLE_SIZE,
+    template <typename TAccumulator,
+              TAccumulator const POLYNOMIAL,
+              bool const REVERSE,
+              table_size const TABLE_SIZE,
               typename = std::enable_if_t<std::is_unsigned<TAccumulator>::value>>
     class crc_chunk_table
     {
     public:
         using policy = typename std::conditional<REVERSE,
-                crc_reverse_policy<TAccumulator, TABLE_SIZE, POLY>,
-                crc_forward_policy<TAccumulator, TABLE_SIZE, POLY>>::type;
+                crc_reverse_policy<TAccumulator, TABLE_SIZE>,
+                crc_forward_policy<TAccumulator, TABLE_SIZE>>::type;
 
         using traits = typename policy::traits;
 
@@ -282,7 +262,15 @@ namespace impl
         // update the given crc accumulator with the value
         static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
-            return policy::update(crc, value, m_Table);
+            if constexpr(TABLE_SIZE == table_size::tiny) {
+                return policy::update_impl_tiny(crc, value, m_Table);
+            } else if constexpr(TABLE_SIZE == table_size::small) {
+                return policy::update_impl_small(crc, value, m_Table);
+            } else if constexpr(TABLE_SIZE == table_size::large) {
+                return policy::update_impl_large(crc, value, m_Table);
+            } else {
+                static_assert("Unknown table_size");
+            }
         }
 
         // the crc accumulator initial value may need to be modified by the policy
@@ -304,7 +292,7 @@ namespace impl
 
             for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
-                table[nibble] = policy::generate_entry(nibble);
+                table[nibble] = policy::generate_entry(POLYNOMIAL, nibble);
             }
 
             return table;
@@ -316,7 +304,7 @@ namespace impl
 
         // recursive case
         template<uint16_t INDEX = 0, TAccumulator ...D>
-        struct table_builder : table_builder<INDEX+1, D..., policy::generate_entry(INDEX)> {};
+        struct table_builder : table_builder<INDEX+1, D..., policy::generate_entry(POLYNOMIAL, INDEX)> {};
 
         // termination of recursion at table length
         template<TAccumulator ...D>
@@ -336,14 +324,14 @@ namespace impl
     //
     template <
         typename TAccumulator,
-        const TAccumulator POLY,
+        const TAccumulator POLYNOMIAL,
         const TAccumulator INITIAL,
         const TAccumulator XOR_OUT,
         const bool REVERSE>
     struct crc_algorithm
     {
         using accumulator_type = TAccumulator;
-        static constexpr TAccumulator polynomial = POLY;
+        static constexpr TAccumulator polynomial = POLYNOMIAL;
         static constexpr TAccumulator initial_value = INITIAL;
         static constexpr TAccumulator xor_out_value = XOR_OUT;
         static constexpr bool reverse = REVERSE;
