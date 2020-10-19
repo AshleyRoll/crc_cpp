@@ -69,6 +69,8 @@ The bits column indicates how many bits of each byte is processed in a single
 step. 8 bits means the entire bytes is used in a single step. 4 bits means that
 we process a nibble (4 bits) at a time, and so on.
 
+Each entry in the table is the size of the CRC register (8, 16, 32 or 64 bits).
+
 
 ## Define your own
 
@@ -88,7 +90,11 @@ class mycrc : public crc_cpp::impl::crc<
 
 Then just use it like any other one.
 
-# Limitation
+If the reverse parameter is `false`, the bits are rotated through the register
+MSG to LSB (rotate left). If it is `true` the reverse happens and bits are shifted through
+LSB to MSB (rotate right).
+
+# Limitations
 
 Support is only provided for CRC algorithms with a register size of 8, 16, 32
 or 64 bits.
