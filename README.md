@@ -25,7 +25,7 @@ Simply create an instance of the correct algorithm type, and continually
 `update()` it with bytes. Call `final()` to get the CRC result.
 
 If you wish to reuse the crc object, you can call `reset()` to initialise it
-again. The object
+again.
 
 ```cpp
 
