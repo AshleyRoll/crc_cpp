@@ -176,61 +176,62 @@ namespace family
 
 } // namespace family
 
+namespace small {
+    //------------------------------------------------------------------------
+    //
+    // Define the set of default CRC implementations using small table size
+    //
+    // These are the defined in the top level crc_cpp namespace
+    //
+    //------------------------------------------------------------------------
 
-//------------------------------------------------------------------------
-//
-// Define the set of default CRC implementations using small table size
-//
-// These are the defined in the top level crc_cpp namespace
-//
-//------------------------------------------------------------------------
+    using crc8 =           family::crc8            <table_size::small>;
+    using crc8_cdma2000 =  family::crc8_cdma2000   <table_size::small>;
+    using crc8_darc =      family::crc8_darc       <table_size::small>;
+    using crc8_dvbs2 =     family::crc8_dvbs2      <table_size::small>;
+    using crc8_ebu =       family::crc8_ebu        <table_size::small>;
+    using crc8_icode =     family::crc8_icode      <table_size::small>;
+    using crc8_itu =       family::crc8_itu        <table_size::small>;
+    using crc8_maxim =     family::crc8_maxim      <table_size::small>;
+    using crc8_rohc =      family::crc8_rohc       <table_size::small>;
+    using crc8_wcdma =     family::crc8_wcdma      <table_size::small>;
 
-using crc8 =           family::crc8            <table_size::small>;
-using crc8_cdma2000 =  family::crc8_cdma2000   <table_size::small>;
-using crc8_darc =      family::crc8_darc       <table_size::small>;
-using crc8_dvbs2 =     family::crc8_dvbs2      <table_size::small>;
-using crc8_ebu =       family::crc8_ebu        <table_size::small>;
-using crc8_icode =     family::crc8_icode      <table_size::small>;
-using crc8_itu =       family::crc8_itu        <table_size::small>;
-using crc8_maxim =     family::crc8_maxim      <table_size::small>;
-using crc8_rohc =      family::crc8_rohc       <table_size::small>;
-using crc8_wcdma =     family::crc8_wcdma      <table_size::small>;
+    using crc16_ccit =     family::crc16_ccit      <table_size::small>;
+    using crc16_arc =      family::crc16_arc       <table_size::small>;
+    using crc16_augccit =  family::crc16_augccit   <table_size::small>;
+    using crc16_buypass =  family::crc16_buypass   <table_size::small>;
+    using crc16_cdma2000 = family::crc16_cdma2000  <table_size::small>;
+    using crc16_dds110 =   family::crc16_dds110    <table_size::small>;
+    using crc16_dectr =    family::crc16_dectr     <table_size::small>;
+    using crc16_dectx =    family::crc16_dectx     <table_size::small>;
+    using crc16_dnp =      family::crc16_dnp       <table_size::small>;
+    using crc16_en13757 =  family::crc16_en13757   <table_size::small>;
+    using crc16_genibus =  family::crc16_genibus   <table_size::small>;
+    using crc16_maxim =    family::crc16_maxim     <table_size::small>;
+    using crc16_mcrf4xx =  family::crc16_mcrf4xx   <table_size::small>;
+    using crc16_riello =   family::crc16_riello    <table_size::small>;
+    using crc16_t10dif =   family::crc16_t10dif    <table_size::small>;
+    using crc16_teledisk = family::crc16_teledisk  <table_size::small>;
+    using crc16_tms37157 = family::crc16_tms37157  <table_size::small>;
+    using crc16_usb =      family::crc16_usb       <table_size::small>;
+    using crc16_a =        family::crc16_a         <table_size::small>;
+    using crc16_kermit =   family::crc16_kermit    <table_size::small>;
+    using crc16_modbus =   family::crc16_modbus    <table_size::small>;
+    using crc16_x25 =      family::crc16_x25       <table_size::small>;
+    using crc16_xmodem =   family::crc16_xmodem    <table_size::small>;
 
-using crc16_ccit =     family::crc16_ccit      <table_size::small>;
-using crc16_arc =      family::crc16_arc       <table_size::small>;
-using crc16_augccit =  family::crc16_augccit   <table_size::small>;
-using crc16_buypass =  family::crc16_buypass   <table_size::small>;
-using crc16_cdma2000 = family::crc16_cdma2000  <table_size::small>;
-using crc16_dds110 =   family::crc16_dds110    <table_size::small>;
-using crc16_dectr =    family::crc16_dectr     <table_size::small>;
-using crc16_dectx =    family::crc16_dectx     <table_size::small>;
-using crc16_dnp =      family::crc16_dnp       <table_size::small>;
-using crc16_en13757 =  family::crc16_en13757   <table_size::small>;
-using crc16_genibus =  family::crc16_genibus   <table_size::small>;
-using crc16_maxim =    family::crc16_maxim     <table_size::small>;
-using crc16_mcrf4xx =  family::crc16_mcrf4xx   <table_size::small>;
-using crc16_riello =   family::crc16_riello    <table_size::small>;
-using crc16_t10dif =   family::crc16_t10dif    <table_size::small>;
-using crc16_teledisk = family::crc16_teledisk  <table_size::small>;
-using crc16_tms37157 = family::crc16_tms37157  <table_size::small>;
-using crc16_usb =      family::crc16_usb       <table_size::small>;
-using crc16_a =        family::crc16_a         <table_size::small>;
-using crc16_kermit =   family::crc16_kermit    <table_size::small>;
-using crc16_modbus =   family::crc16_modbus    <table_size::small>;
-using crc16_x25 =      family::crc16_x25       <table_size::small>;
-using crc16_xmodem =   family::crc16_xmodem    <table_size::small>;
+    using crc32 =          family::crc32           <table_size::small>;
+    using crc32_bzip2 =    family::crc32_bzip2     <table_size::small>;
+    using crc32_c =        family::crc32_c         <table_size::small>;
+    using crc32_d =        family::crc32_d         <table_size::small>;
+    using crc32_mpeg2 =    family::crc32_mpeg2     <table_size::small>;
+    using crc32_posix =    family::crc32_posix     <table_size::small>;
+    using crc32_q =        family::crc32_q         <table_size::small>;
+    using crc32_jamcrc =   family::crc32_jamcrc    <table_size::small>;
+    using crc32_xfer =     family::crc32_xfer      <table_size::small>;
 
-using crc32 =          family::crc32           <table_size::small>;
-using crc32_bzip2 =    family::crc32_bzip2     <table_size::small>;
-using crc32_c =        family::crc32_c         <table_size::small>;
-using crc32_d =        family::crc32_d         <table_size::small>;
-using crc32_mpeg2 =    family::crc32_mpeg2     <table_size::small>;
-using crc32_posix =    family::crc32_posix     <table_size::small>;
-using crc32_q =        family::crc32_q         <table_size::small>;
-using crc32_jamcrc =   family::crc32_jamcrc    <table_size::small>;
-using crc32_xfer =     family::crc32_xfer      <table_size::small>;
-
-using crc64_ecma =     family::crc64_ecma      <table_size::small>;
+    using crc64_ecma =     family::crc64_ecma      <table_size::small>;
+} // namespace small
 
 namespace large
 {
@@ -344,6 +345,8 @@ namespace tiny
 
 }   // namespace tiny
 
+// select the default size
+using namespace small;
 
 }   // namespace crc_cpp
 
