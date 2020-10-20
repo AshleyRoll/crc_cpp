@@ -33,6 +33,25 @@
 using namespace crc_cpp;
 
 template<typename T>
+bool is_expected(std::string const & name, T const result, T const expected)
+{
+    if(result != expected) {
+        std::cout << "FAIL " << name << "\n";
+        std::cout << "\tExpected: 0x"
+                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(expected))
+                  << uint64_t(expected)
+                  << " Got: 0x"
+                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(result))
+                  << uint64_t(result) << "\n";
+
+        return false;
+    }
+
+    return true;
+}
+
+
+template<typename T>
 bool test_reverse_bits(std::string const &name)
 {
     bool status = true;
@@ -46,17 +65,7 @@ bool test_reverse_bits(std::string const &name)
 
         T const result = crc_cpp::util::reverse_bits<T>(test);
 
-        if(result != expected) {
-            std::cout << "FAIL " << name << "\n";
-            std::cout << "\tExpected: 0x"
-                      << std::hex << std::setfill('0') << std::setw(2 * sizeof(expected))
-                      << uint64_t(expected)
-                      << " Got: 0x"
-                      << std::hex << std::setfill('0') << std::setw(2 * sizeof(result))
-                      << uint64_t(result) << "\n";
-
-            status = false;
-        }
+        status &= is_expected(name, result, expected);
     }
 
     if(status) {
@@ -75,26 +84,18 @@ bool test_crc(std::string const &name, std::vector<uint8_t> const &message, type
     // Assert that the crc register is only the size of accululator.
     static_assert(sizeof(TCrc) == sizeof(typename TCrc::accumulator_type));
 
-    for(auto c : message)
-    {
+    for(auto c : message) {
         crc.update(c);
     }
 
     auto result = crc.final();
 
-    if(result != expected) {
-        std::cout << "FAIL " << name << "\n";
-        std::cout << "\tExpected: 0x"
-                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(expected))
-                  << uint64_t(expected)
-                  << " Got: 0x"
-                  << std::hex << std::setfill('0') << std::setw(2 * sizeof(result))
-                  << uint64_t(result) << "\n";
-    } else {
+    if(is_expected(name, result, expected)) {
         std::cout << "PASS " << name << "\n";
+        return true;
     }
 
-    return result == expected;
+    return false;
 }
 
 //
@@ -124,13 +125,11 @@ int main()
     bool status = true;
 
 
-
     std::cout << "\nTesting Bit Reversal Helpers...\n";
 
     status &= test_reverse_bits<uint8_t>("uint8_t");
     status &= test_reverse_bits<uint32_t>("uint32_t");
     status &= test_reverse_bits<uint64_t>("uint64_t");
-
 
 
     std::cout << "\nTesting CRC Algorithms...\n";
@@ -187,8 +186,6 @@ int main()
     status &=     test_crc<family::crc32_xfer>("crc32_xfer",     message, 0xBD0BE338);
 
     status &=    test_crc<family::crc64_ecma>("crc64_ecma",      message, 0x6C40DF5F0B497347U);
-
-
 
 
     if(status) {
