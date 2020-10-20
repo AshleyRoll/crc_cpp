@@ -32,12 +32,11 @@ again.
 
 #include "crc_cpp.h"
 
-[[nodiscard]] auto compute_crc16ccit(std::vector<uint8_t> message)
+[[nodiscard]] auto compute_crc16ccit(std::vector<uint8_t> const &message)
 {
     crc_cpp::crc16_ccit crc;
 
-    for(auto c : message)
-    {
+    for(auto c : message) {
         crc.update(c);
     }
 
