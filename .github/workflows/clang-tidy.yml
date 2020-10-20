@@ -13,12 +13,17 @@ on:
     branches: [ main ]
 
 jobs:
-  build-clang-cpp17:
+  clang-tidy:
     runs-on: ubuntu-20.04
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Install clang-tidy
+        run: |
+             sudo apt-get install -y clang-tidy-10
+             sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-10 100
 
       - name: Clang Tidy Check
         run: clang-tidy -header-filter=".*" test/test.cpp -- -I./include --std=c++17
