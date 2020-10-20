@@ -1,14 +1,14 @@
 ![C++20 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++20%20Test/badge.svg)
 ![C++17 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++17%20Test/badge.svg)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/02c708fb7c554faabfccbaf04bfe5c14)](https://www.codacy.com/gh/AshleyRoll/crc_cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AshleyRoll/crc_cpp&amp;utm_campaign=Badge_Grade)
 
-
-# crc_cpp
+# `crc_cpp`: CRC Routines
 
 A Header only, `constexpr` / compile time small-table based CRC library.
 
 Currently only supporting:
- - C++20 and above
- - C++17 using a fall back static table generator pattern
+-  C++20 and above
+-  C++17 using a fall back static table generator pattern
 
 Unfortunately older C++ standards will not allow the complex statements in
 `constexpr` functions.
@@ -19,7 +19,7 @@ The calculation is performed using a compile time generated lookup table with
 only 16 entries (by default) to minimise memory footprint - this is designed
 for embedded systems. We trade a small speed penalty to reduce the space.
 
-# Usage
+## Usage
 
 Simply create an instance of the correct algorithm type, and continually
 `update()` it with bytes. Call `final()` to get the CRC result.
@@ -48,7 +48,7 @@ again.
 For each different CRC you use in the program, you will get a new table
 generated as they all will contain different values.
 
-## Trading size and speed
+### Trading size and speed
 
 By default the implementation will select the `small` implementation, a
 4-bit (16 entry table) and process each byte value as 2 nibbles.
@@ -71,8 +71,7 @@ we process a nibble (4 bits) at a time, and so on.
 
 Each entry in the table is the size of the CRC register (8, 16, 32 or 64 bits).
 
-
-## Define your own
+### Define your own
 
 If you have a CRC algorithm that isn't already baked in, feel free to define
 your own:
@@ -94,15 +93,12 @@ If the reverse parameter is `false`, the bits are rotated through the register
 MSB to LSB (rotate left). If it is `true` the reverse happens and bits are shifted through
 LSB to MSB (rotate right).
 
-# Limitations
+## Limitations
 
 Support is only provided for CRC algorithms with a register size of 8, 16, 32
 or 64 bits.
 
+## Future
 
-# Future
-
-- Try to back-port to older C++ standards (help appreciated)
-
-
+-  Try to back-port to older C++ standards (help appreciated)
 
