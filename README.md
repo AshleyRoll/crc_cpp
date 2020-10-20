@@ -7,8 +7,8 @@
 A Header only, `constexpr` / compile time small-table based CRC library.
 
 Currently only supporting:
--  C++20 and above
--  C++17 using a fall back static table generator pattern
+-   C++20 and above
+-   C++17 using a fall back static table generator pattern
 
 Unfortunately older C++ standards will not allow the complex statements in
 `constexpr` functions.
@@ -100,5 +100,5 @@ or 64 bits.
 
 ## Future
 
--  Try to back-port to older C++ standards (help appreciated)
-
+Things to work on in the future:
+-   Try to back-port to older C++ standards (help appreciated)
