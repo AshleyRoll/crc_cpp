@@ -71,7 +71,6 @@ we process a nibble (4 bits) at a time, and so on.
 
 Each entry in the table is the size of the CRC register (8, 16, 32 or 64 bits).
 
-
 ### Define your own
 
 If you have a CRC algorithm that isn't already baked in, feel free to define
@@ -98,7 +97,6 @@ LSB to MSB (rotate right).
 
 Support is only provided for CRC algorithms with a register size of 8, 16, 32
 or 64 bits.
-
 
 ## Future
 
