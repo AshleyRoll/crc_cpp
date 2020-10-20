@@ -1,5 +1,6 @@
 ![C++20 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++20%20Test/badge.svg)
 ![C++17 Test](https://github.com/AshleyRoll/crc_cpp/workflows/C++17%20Test/badge.svg)
+![Clang Tidy](https://github.com/AshleyRoll/crc_cpp/workflows/Clang%20Tidy/badge.svg)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/02c708fb7c554faabfccbaf04bfe5c14)](https://www.codacy.com/gh/AshleyRoll/crc_cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AshleyRoll/crc_cpp&amp;utm_campaign=Badge_Grade)
 
 # `crc_cpp`: CRC Routines

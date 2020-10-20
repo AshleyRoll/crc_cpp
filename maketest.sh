@@ -51,6 +51,11 @@ BIN="bin"
 OUT="${BIN}/test-${COMPILER}${STD}"
 
 echo "-----------------------------------------------------"
+echo "Running clang-tidy"
+
+time clang-tidy -header-filter=".*" -quiet test/test.cpp -- -I./include --std=c++17
+
+echo "-----------------------------------------------------"
 echo "Building test.cpp with ${COMPILER} ${STDARG}"
 
 mkdir -p ${BIN}

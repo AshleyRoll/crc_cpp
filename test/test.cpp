@@ -82,7 +82,7 @@ bool test_crc(std::string const &name, std::vector<uint8_t> const &message, type
     TCrc crc;   // initialised by construction
 
     // Assert that the crc register is only the size of accululator.
-    static_assert(sizeof(TCrc) == sizeof(typename TCrc::accumulator_type));
+    static_assert(sizeof(TCrc) == sizeof(typename TCrc::accumulator_type), "Unexpected CRC object size");
 
     for(auto c : message) {
         crc.update(c);
