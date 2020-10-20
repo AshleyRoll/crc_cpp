@@ -33,7 +33,7 @@
 using namespace crc_cpp;
 
 template<typename T>
-bool test_reverse_bits(std::string name)
+bool test_reverse_bits(std::string const &name)
 {
     bool status = true;
 
@@ -68,7 +68,7 @@ bool test_reverse_bits(std::string name)
 
 
 template<typename TCrc>
-bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::accumulator_type expected)
+bool test_crc(std::string const &name, std::vector<uint8_t> const &message, typename TCrc::accumulator_type expected)
 {
     TCrc crc;   // initialised by construction
 
@@ -102,8 +102,8 @@ bool test_crc(std::string name, std::vector<uint8_t> message, typename TCrc::acc
 //
 template<template<const table_size> class TCrc>
 bool test_crc(
-        std::string name,
-        std::vector<uint8_t> message,
+        std::string const &name,
+        std::vector<uint8_t> const &message,
         // hack to get to the accumulator type by fully quallifying one of the instances
         typename TCrc<table_size::small>::accumulator_type expected
         )
@@ -115,7 +115,7 @@ bool test_crc(
     result &= test_crc<TCrc<table_size::small>>(name+" (small)", message, expected);
     result &= test_crc<TCrc<table_size::large>>(name+" (large)", message, expected);
 
-    return true;
+    return result;
 }
 
 
