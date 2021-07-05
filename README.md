@@ -109,58 +109,58 @@ LSB to MSB (rotate right).
 
 ### 8 Bit
 
-* crc8
-* crc8_cdma2000
-* crc8_darc
-* crc8_dvbs2
-* crc8_ebu
-* crc8_icode
-* crc8_itu
-* crc8_maxim
-* crc8_rohc
-* crc8_wcdma
+-   crc8
+-   crc8_cdma2000
+-   crc8_darc
+-   crc8_dvbs2
+-   crc8_ebu
+-   crc8_icode
+-   crc8_itu
+-   crc8_maxim
+-   crc8_rohc
+-   crc8_wcdma
 
 ### 16 Bit
 
-* crc16_ccit
-* crc16_arc
-* crc16_augccit
-* crc16_buypass
-* crc16_cdma2000
-* crc16_dds110
-* crc16_dectr
-* crc16_dectx
-* crc16_dnp
-* crc16_en13757
-* crc16_genibus
-* crc16_maxim
-* crc16_mcrf4xx
-* crc16_riello
-* crc16_t10dif
-* crc16_teledisk
-* crc16_tms37157
-* crc16_usb
-* crc16_a
-* crc16_kermit
-* crc16_modbus
-* crc16_x25
-* crc16_xmodem
+-   crc16_ccit
+-   crc16_arc
+-   crc16_augccit
+-   crc16_buypass
+-   crc16_cdma2000
+-   crc16_dds110
+-   crc16_dectr
+-   crc16_dectx
+-   crc16_dnp
+-   crc16_en13757
+-   crc16_genibus
+-   crc16_maxim
+-   crc16_mcrf4xx
+-   crc16_riello
+-   crc16_t10dif
+-   crc16_teledisk
+-   crc16_tms37157
+-   crc16_usb
+-   crc16_a
+-   crc16_kermit
+-   crc16_modbus
+-   crc16_x25
+-   crc16_xmodem
 
 ### 32 Bit
 
-* crc32
-* crc32_bzip2
-* crc32_c
-* crc32_d
-* crc32_mpeg2
-* crc32_posix
-* crc32_q
-* crc32_jamcrc
-* crc32_xfer
+-   crc32
+-   crc32_bzip2
+-   crc32_c
+-   crc32_d
+-   crc32_mpeg2
+-   crc32_posix
+-   crc32_q
+-   crc32_jamcrc
+-   crc32_xfer
 
 ### 64 Bit
 
-* crc64_ecma
+-   crc64_ecma
 
 ## Limitations
 
