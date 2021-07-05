@@ -18,7 +18,10 @@ This library implements most of the common CRC checks from 8 to 64 bits.
 
 The calculation is performed using a compile time generated lookup table with
 only 16 entries (by default) to minimise memory footprint - this is designed
-for embedded systems. We trade a small speed penalty to reduce the space.
+for embedded systems where RAM and program memory are at a premium.
+
+If you are able to provide data to the CRC at compile time, the entire CRC is
+able to be computed at compile time.
 
 ## Usage
 
