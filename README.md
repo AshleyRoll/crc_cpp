@@ -23,6 +23,7 @@ for embedded systems where RAM and program memory are at a premium.
 If you are able to provide data to the CRC at compile time, the entire CRC is
 able to be computed at compile time.
 
+
 ## Usage
 
 Simply create an instance of the correct algorithm type, and continually
@@ -35,7 +36,7 @@ again.
 
 #include "crc_cpp.h"
 
-[[nodiscard]] auto compute_crc16ccit(std::vector<uint8_t> const &message)
+[[nodiscard]] constexpr auto compute_crc16ccit(std::vector<char> const &message)
 {
     crc_cpp::crc16_ccit crc;
 
@@ -46,7 +47,15 @@ again.
     return crc.final();
 }
 
+int main()
+{
+    std::vector<char> const message{'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+    return 0x29B1 == compute_crc16ccit(message);
+}
+
 ```
+[![Compiler Explorer](https://godbolt.org/favicon.ico) Try it on Compiler Explorer](https://godbolt.org/z/6Wc17zfze)
 
 For each different CRC you use in the program, you will get a new table
 generated as they all will contain different values.
@@ -95,6 +104,63 @@ Then just use it like any other one.
 If the reverse parameter is `false`, the bits are rotated through the register
 MSB to LSB (rotate left). If it is `true` the reverse happens and bits are shifted through
 LSB to MSB (rotate right).
+
+## Supported CRC Algorithms
+
+### 8 Bit
+
+* crc8
+* crc8_cdma2000
+* crc8_darc
+* crc8_dvbs2
+* crc8_ebu
+* crc8_icode
+* crc8_itu
+* crc8_maxim
+* crc8_rohc
+* crc8_wcdma
+
+### 16 Bit
+
+* crc16_ccit
+* crc16_arc
+* crc16_augccit
+* crc16_buypass
+* crc16_cdma2000
+* crc16_dds110
+* crc16_dectr
+* crc16_dectx
+* crc16_dnp
+* crc16_en13757
+* crc16_genibus
+* crc16_maxim
+* crc16_mcrf4xx
+* crc16_riello
+* crc16_t10dif
+* crc16_teledisk
+* crc16_tms37157
+* crc16_usb
+* crc16_a
+* crc16_kermit
+* crc16_modbus
+* crc16_x25
+* crc16_xmodem
+
+### 32 Bit
+
+* crc32
+* crc32_bzip2
+* crc32_c
+* crc32_d
+* crc32_mpeg2
+* crc32_posix
+* crc32_q
+* crc32_jamcrc
+* crc32_xfer
+
+### 64 Bit
+
+* crc64_ecma
 
 ## Limitations
 
