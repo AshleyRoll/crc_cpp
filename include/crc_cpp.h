@@ -28,6 +28,15 @@
 #include <cstdint>
 #include <array>
 
+
+//
+// C++20 feature toggle
+//
+#if __cplusplus >= 202002L
+#define CRC_CPP_STD20_MODE 1
+#endif
+
+
 namespace crc_cpp
 {
     // Select the table size to use. This trades speed for size.
@@ -337,7 +346,7 @@ namespace impl
 // If we are C++20 or above, we can leverage cleaner constexpr initialisation
 // otherwise we will attempt to use a static table builder metaprogramming pattern
 // NOTE: Only C++17 will work, other constexpr code prevents C++14 and below working.
-#if __cplusplus >= 202002L
+#ifdef CRC_CPP_STD20_MODE
         [[nodiscard]] static constexpr typename traits::table_type Generate()
         {
             typename traits::table_type table;
@@ -402,17 +411,17 @@ namespace impl
             //
             // Update the accumulator with a new byte
             //
-            void update(uint8_t value) { m_Crc = table_impl::update(m_Crc, value); }
+            constexpr void update(uint8_t value) { m_Crc = table_impl::update(m_Crc, value); }
 
             //
             // Extract the final value of the accumulator.
             //
-            [[nodiscard]] accumulator_type final() { return m_Crc ^ algorithm::xor_out_value; }
+            [[nodiscard]] constexpr accumulator_type final() { return m_Crc ^ algorithm::xor_out_value; }
 
             //
             // Reset the state of the accumulator back to the INITIAL value.
             //
-            void reset() { m_Crc = table_impl::make_initial_value(algorithm::initial_value); }
+            constexpr void reset() { m_Crc = table_impl::make_initial_value(algorithm::initial_value); }
 
 
         private:
@@ -658,11 +667,7 @@ namespace large
     using crc32_d =        family::crc32_d         <table_size::large>;
     using crc32_mpeg2 =    family::crc32_mpeg2     <table_size::large>;
     using crc32_posix =    family::crc32_posix     <table_size::large>;
-    using crc32_q =        family::crc32_q         <table_size::large>;
-    using crc32_jamcrc =   family::crc32_jamcrc    <table_size::large>;
-    using crc32_xfer =     family::crc32_xfer      <table_size::large>;
-
-    using crc64_ecma =     family::crc64_ecma      <table_size::large>;
+    using crc32_q =        family::crc32_q         <table_size::large>; using crc32_jamcrc =   family::crc32_jamcrc    <table_size::large>; using crc32_xfer =     family::crc32_xfer      <table_size::large>; using crc64_ecma =     family::crc64_ecma      <table_size::large>;
 
 }   // namespace large
 
@@ -726,5 +731,9 @@ namespace tiny
 using namespace small;
 
 }   // namespace crc_cpp
+
+#undef CRC_CPP_STD20_MODE
+#undef CRC_CPP_API_CONSTEXPR
+
 
 #endif // CRC_CPP_H_INCLUDED
