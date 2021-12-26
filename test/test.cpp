@@ -28,7 +28,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <span>
 
 #include "crc_cpp.h"
 
