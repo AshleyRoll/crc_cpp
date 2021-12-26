@@ -27,6 +27,8 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <array>
+#include <span>
 
 #include "crc_cpp.h"
 
@@ -119,6 +121,27 @@ bool test_crc(
     return result;
 }
 
+//------------------------------------------------------------------------
+// Constexpr test
+//
+// Verify that the CRC can be calculated in a constexpr (compile-time) context
+template<std::size_t N>
+constexpr bool constexpr_check_message(std::array<uint8_t, N> data, uint8_t const expected)
+{
+    crc_cpp::crc8 crc;
+    for(const auto b : data) {
+        crc.update(b);
+    }
+    return expected == crc.final();
+}
+
+constexpr std::array<uint8_t, 9> constexpr_message{'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+[[maybe_unused]] constexpr bool constexpr_test_result = constexpr_check_message(constexpr_message, 0xF4);
+
+static_assert(constexpr_test_result, "Failed to compute crc at compile time");
+//------------------------------------------------------------------------
+
+
 
 int main()
 {
@@ -136,10 +159,10 @@ int main()
 
     // Test vector and result from https://crccalc.com
     // except crc64_ecma which comes from https://etlcppp.com
-    std::vector<uint8_t> message{'1', '2', '3', '4', '5', '6', '7', '8', '9' };
+    std::vector<uint8_t> message{ '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 
-    // we are exeucting the tests per family (table size set, same algorithm).
+    // we are executing the tests per family (table size set, same algorithm).
     status &=           test_crc<family::crc8>("crc8",           message, 0xF4);
     status &=  test_crc<family::crc8_cdma2000>("crc8_cdma2000",  message, 0xDA);
     status &=      test_crc<family::crc8_darc>("crc8_darc",      message, 0x15);

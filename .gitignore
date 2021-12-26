@@ -32,3 +32,5 @@
 *.app
 
 bin/
+.idea/
+
