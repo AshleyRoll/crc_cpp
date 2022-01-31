@@ -56,18 +56,18 @@ namespace util
 
     template<> [[nodiscard]] constexpr uint8_t reverse_bits(uint8_t value)
     {
-        value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);
-        value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);
-        value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);
+        value = static_cast<uint8_t>(((value & 0xAA) >> 1) | ((value & 0x55) << 1));
+        value = static_cast<uint8_t>(((value & 0xCC) >> 2) | ((value & 0x33) << 2));
+        value = static_cast<uint8_t>(((value & 0xF0) >> 4) | ((value & 0x0F) << 4));
         return value;
     }
 
     template<> [[nodiscard]] constexpr uint16_t reverse_bits(uint16_t value)
     {
-        value = ((value & 0xAAAA) >> 1) | ((value & 0x5555) << 1);
-        value = ((value & 0xCCCC) >> 2) | ((value & 0x3333) << 2);
-        value = ((value & 0xF0F0) >> 4) | ((value & 0x0F0F) << 4);
-        value = (value >> 8) | (value << 8);
+        value = static_cast<uint16_t>(((value & 0xAAAA) >> 1) | ((value & 0x5555) << 1));
+        value = static_cast<uint16_t>(((value & 0xCCCC) >> 2) | ((value & 0x3333) << 2));
+        value = static_cast<uint16_t>(((value & 0xF0F0) >> 4) | ((value & 0x0F0F) << 4));
+        value = static_cast<uint16_t>((value >> 8) | (value << 8));
         return value;
     }
 
@@ -181,7 +181,7 @@ namespace impl
             value &= traits::CHUNK_MASK;
 
             // Extract the most significant nibble of the crc and xor with the value nibble
-            uint8_t t = (crc >> (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS)) ^ value;
+            auto t = static_cast<uint8_t>((crc >> (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS)) ^ value);
 
             // special case for when chunk size is same as accumulator size.
             if constexpr(traits::ACCUMULATOR_BITS > traits::CHUNK_BITS) {
@@ -197,18 +197,18 @@ namespace impl
             return crc;
         }
 
-        [[nodiscard]] static constexpr TAccumulator generate_entry(TAccumulator const polynomial, uint8_t const index)
+        [[nodiscard]] static constexpr TAccumulator generate_entry(TAccumulator const polynomial, std::size_t const index)
         {
             // initialise with the register in the upper bits
-            TAccumulator entry = TAccumulator(index) << (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS);
+            auto entry = static_cast<TAccumulator>(index << (traits::ACCUMULATOR_BITS - traits::CHUNK_BITS));
 
             for(std::size_t i = 0; i < traits::CHUNK_BITS; i++)
             {
                 // We are processing MSBs / rotating left so we need to check the high bit
                 if(entry & (TAccumulator(1u) << (traits::ACCUMULATOR_BITS - 1))) {
-                    entry = (entry << 1) ^ polynomial;
+                    entry = static_cast<TAccumulator>((entry << 1) ^ polynomial);
                 } else {
-                    entry = (entry << 1);
+                    entry = static_cast<TAccumulator>(entry << 1);
                 }
             }
 
@@ -259,7 +259,7 @@ namespace impl
             value &= traits::CHUNK_MASK;
 
             // Extract the least significant nibble of the crc and xor with the value nibble
-            uint8_t t = (crc & traits::CHUNK_MASK) ^ value;
+            auto t = static_cast<uint8_t>((crc & traits::CHUNK_MASK) ^ value);
 
             // special case for when chunk size is same as accumulator size.
             if constexpr(traits::ACCUMULATOR_BITS > traits::CHUNK_BITS) {
@@ -353,7 +353,7 @@ namespace impl
 
             for(std::size_t nibble = 0; nibble < traits::TABLE_ENTRIES; ++nibble)
             {
-                table[nibble] = policy::generate_entry(POLYNOMIAL, nibble);
+                table[nibble] = policy::generate_entry(POLYNOMIAL, static_cast<uint8_t>(nibble));
             }
 
             return table;

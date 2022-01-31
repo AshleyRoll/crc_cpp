@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        compiler: [ {cpp: g++-10, c: gcc-10}, {cpp: g++-11, c: gcc-11}, {cpp: clang++-12, c: clang-12} ]
+        compiler: [ {cpp: g++-10, c: gcc-10}, {cpp: g++-11, c: gcc-11}, {cpp: clang++-12, c: clang-12}, {cpp: clang++-13, c: clang-13} ]
         std: [cxx_std_17, cxx_std_20]
     steps:
     - uses: actions/checkout@v2
