@@ -39,7 +39,7 @@ jobs:
 
     - run:   |
              sudo apt update
-             sudo apt install gcc-11 g++-11 clang-12 llvm-12
+             sudo apt install gcc-11 g++-11 clang-12 llvm-12 clang-13 llvm-13
       shell: bash
 
     - name: Install conan
