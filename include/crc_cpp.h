@@ -42,9 +42,10 @@ namespace crc_cpp
     // Select the table size to use. This trades speed for size.
     enum class table_size
     {
-        tiny,   // 4 Entries, 2 bits per chunk
-        small,  // 16 Entries, 4 bits per chunk
-        large   // 256 Entries, 8 bits per chunk
+        undefined,  // not initialized
+        tiny,       // 4 Entries, 2 bits per chunk
+        small,      // 16 Entries, 4 bits per chunk
+        large       // 256 Entries, 8 bits per chunk
     };
 
 namespace util
@@ -323,14 +324,14 @@ namespace impl
         // update the given crc accumulator with the value
         [[nodiscard]] static constexpr TAccumulator update(TAccumulator crc, uint8_t value)
         {
+            static_assert(TABLE_SIZE != table_size::undefined, "Unknown table_size");
+
             if constexpr(TABLE_SIZE == table_size::tiny) {
                 return policy::update_impl_tiny(crc, value, m_Table);
             } else if constexpr(TABLE_SIZE == table_size::small) {
                 return policy::update_impl_small(crc, value, m_Table);
             } else if constexpr(TABLE_SIZE == table_size::large) {
                 return policy::update_impl_large(crc, value, m_Table);
-            } else {
-                static_assert("Unknown table_size");
             }
         }
 
