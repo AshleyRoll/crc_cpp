@@ -17,11 +17,11 @@ template<typename T> bool test_reverse_bits()
 
     int const bits = sizeof(T) * 8;
 
-    for (int i = 0; i < bits; i++)
+    for (T i = 0; i < bits; i++)
     {
         // careful with types to ensure we don't end up with signed ints
-        auto const test = static_cast<T>(0x01u << i);
-        auto const expected = static_cast<T>(0x01u << (bits - 1 - i));
+        T const test = static_cast<T>(T{0x01u} << i);
+        T const expected = static_cast<T>(T{0x01u} << (bits - 1 - i));
 
         auto const result = crc_cpp::util::reverse_bits<T>(test);
 
