@@ -1,0 +1,45 @@
+---
+BasedOnStyle: WebKit
+Language: Cpp
+ColumnLimit: 180
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: DontAlign
+AlignOperands: 'true'
+AllowShortFunctionsOnASingleLine: true
+BreakBeforeBraces: Custom
+NamespaceIndentation: None
+BraceWrapping:
+  AfterClass: true
+  AfterCaseLabel: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakConstructorInitializers: BeforeColon
+BinPackArguments: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+FixNamespaceComments: true
+IncludeBlocks: Regroup
+IndentCaseLabels: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Left
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: false
+SpacesBeforeTrailingComments: 2
+SpaceBeforeCpp11BracedList: false
+SpaceInEmptyBlock: false
+TabWidth: 4
+UseTab: Never
