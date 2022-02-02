@@ -1,4 +1,3 @@
-
 [![C++ CMake CI](https://github.com/AshleyRoll/crc_cpp/actions/workflows/build_cmake.yml/badge.svg)](https://github.com/AshleyRoll/crc_cpp/actions/workflows/build_cmake.yml)
 [![CodeQL](https://github.com/AshleyRoll/crc_cpp/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/AshleyRoll/crc_cpp/actions/workflows/codeql-analysis.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/02c708fb7c554faabfccbaf04bfe5c14)](https://www.codacy.com/gh/AshleyRoll/crc_cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AshleyRoll/crc_cpp&amp;utm_campaign=Badge_Grade)
