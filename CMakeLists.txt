@@ -3,7 +3,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 # Set the project name to your project name, my project isn't very descriptive
 PROJECT(crc_cpp CXX)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 4)
-SET(CMAKE_CXX_STANDARD 20)
+IF(NOT DEFINED CMAKE_CXX_STANDARD)
+    SET(CMAKE_CXX_STANDARD 20)
+ENDIF()
 
 INCLUDE(cmake/StandardProjectSettings.cmake)
 INCLUDE(cmake/PreventInSourceBuilds.cmake)
