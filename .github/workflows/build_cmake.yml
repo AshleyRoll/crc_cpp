@@ -15,15 +15,21 @@ jobs:
   linux:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # 'false' means Don't stop matrix workflows even if some matrix entry fails.
       matrix:
-        os: [ubuntu-latest]
-        compiler: [ {cpp: g++-10, c: gcc-10}, {cpp: g++-11, c: gcc-11}, {cpp: clang++-12, c: clang-12} ]
-        std: [cxx_std_17, cxx_std_20]
+        os: [ubuntu-22.04]
+        compiler: [ {name: 'GCC 10', cpp: g++-10, c: gcc-10, pkgs: 'gcc-10 g++-10 lib32gcc-10-dev gcc-multilib'},
+                    {name: 'GCC 11', cpp: g++-11, c: gcc-11, pkgs: 'gcc-11 g++-11 lib32gcc-11-dev gcc-multilib'},
+                    {name: 'Clang 12', cpp: clang++-12, c: clang-12, pkgs: 'clang-12 llvm-12'},
+                    {name: 'Clang 13', cpp: clang++-13, c: clang-13, pkgs: 'clang-13 llvm-13'},
+                    {name: 'Clang 14', cpp: clang++-14, c: clang-14, pkgs: 'clang-14 llvm-14'},
+                    {name: 'Clang 15', cpp: clang++-15, c: clang-15, pkgs: 'clang-15 llvm-15'}
+                  ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       env:
         cache-name: cache-conan-modules
       with:
@@ -38,16 +44,14 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - run:   |
+             sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
              sudo apt update
-             sudo apt install gcc-11 g++-11 clang-12 llvm-12
+             sudo apt install ${{ matrix.compiler.pkgs }}
       shell: bash
 
     - name: Install conan
       shell: bash
-      run: |
-        python3 -m pip install --upgrade pip setuptools jinja2 cmsis-svd
-        python3 -m pip install conan
-        source ~/.profile
+      run: source ~/.profile
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
@@ -64,7 +68,7 @@ jobs:
       # We need to source the profile file to make sure conan is in PATH
       run: |
         source ~/.profile
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCPP_STD=${{ matrix.std }}
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -81,11 +85,11 @@ jobs:
   windows:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # 'false' means Don't stop matrix workflows even if some matrix entry fails.
       matrix:
         os: [windows-latest, windows-2019]
-        std: [cxx_std_17, cxx_std_20]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install conan
         shell: bash
         run: |
@@ -105,7 +109,7 @@ jobs:
         # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
         #
         # We need to source the profile file to make sure conan is in PATH
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCPP_STD=${{ matrix.std }}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
       - name: Build
         shell: bash
         working-directory: ${{github.workspace}}/build
