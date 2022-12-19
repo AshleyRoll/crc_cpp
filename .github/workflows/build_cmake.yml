@@ -70,7 +70,7 @@ jobs:
       # We need to source the profile file to make sure conan is in PATH
       run: |
         source ~/.profile
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_STANDARD=${{ matrix.cxx_std }}
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCXX_STANDARD=${{ matrix.cxx_std }}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

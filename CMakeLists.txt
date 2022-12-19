@@ -3,9 +3,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.16)
 # Set the project name to your project name, my project isn't very descriptive
 PROJECT(crc_cpp CXX)
 SET(CMAKE_BUILD_PARALLEL_LEVEL 4)
-IF(NOT DEFINED CMAKE_CXX_STANDARD)
+IF(NOT DEFINED CXX_STANDARD)
     SET(CMAKE_CXX_STANDARD 20)
+ELSE()
+    SET(CMAKE_CXX_STANDARD ${CXX_STANDARD})
 ENDIF()
+MESSAGE("Using C++ standard ${CMAKE_CXX_STANDARD}")
 
 INCLUDE(cmake/StandardProjectSettings.cmake)
 INCLUDE(cmake/PreventInSourceBuilds.cmake)
