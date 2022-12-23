@@ -32,7 +32,7 @@ env:
 
 jobs:
   analyze:
-    name: Analyze ${{ matrix.compiler.name }}, ${{ matrix.std }}
+    name: Analyze ${{ matrix.compiler.name }}, C++${{ matrix.cxx_std }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -48,7 +48,7 @@ jobs:
         compiler: [ {name: "GCC 11", cpp: g++-11, c: gcc-11, pkgs: 'gcc-11 g++-11 lib32gcc-11-dev gcc-multilib'},
                     {name: "Clang 15", cpp: clang++-15, c: clang-15, pkgs: 'clang-15 llvm-15'}
                   ]
-        std: [cxx_std_17, cxx_std_20]
+        cxx_std: [17, 20]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
         # Learn more:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
@@ -108,7 +108,7 @@ jobs:
       # We need to source the profile file to make sure conan is in PATH
       run: |
         source ~/.profile
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCPP_STD=${{ matrix.std }}
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCXX_STANDARD=${{ matrix.cxx_std }}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
