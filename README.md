@@ -28,7 +28,6 @@ This library is available through Conan.
 
 [crc_cpp on Conan.io](https://conan.io/center/crc_cpp)
 
-
 ## Usage
 
 Simply create an instance of the correct algorithm type, and continually
