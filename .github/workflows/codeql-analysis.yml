@@ -19,6 +19,7 @@ on:
     branches: [ main ]
   schedule:
     - cron: '39 5 * * 0'
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -31,7 +32,7 @@ env:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze ${{ matrix.compiler.name }}, C++${{ matrix.cxx_std }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -41,20 +42,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # We will only analyse with the latest GCC and Clang, but for C++17 and C++20 modes.
+        # The Build CI steps will test code in more versions.
         language: [ 'cpp' ]
-        compiler: [ {cpp: g++-10, c: gcc-10}, {cpp: g++-11, c: gcc-11}, {cpp: clang++-12, c: clang-12} ]
-        std: [cxx_std_17, cxx_std_20]
+        compiler: [ {name: "GCC 11", cpp: g++-11, c: gcc-11, pkgs: 'gcc-11 g++-11 lib32gcc-11-dev gcc-multilib'},
+                    {name: "Clang 15", cpp: clang++-15, c: clang-15, pkgs: 'clang-15 llvm-15'}
+                  ]
+        cxx_std: [17, 20]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
         # Learn more:
         # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -63,7 +68,7 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       env:
         cache-name: cache-conan-modules
       with:
@@ -75,18 +80,16 @@ jobs:
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - run:   |
-             sudo apt update
-             sudo apt install gcc-11 g++-11 clang-12 llvm-12
+      run: |
+        sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+        sudo apt update
+        sudo apt install ${{ matrix.compiler.pkgs }}
+        cmake -E make_directory ${{runner.workspace}}/build
       shell: bash
 
     - name: Install conan
       shell: bash
       run: |
-        python3 -m pip install --upgrade pip setuptools jinja2 cmsis-svd
-        python3 -m pip install conan
         source ~/.profile
 
     - name: Configure CMake
@@ -104,7 +107,7 @@ jobs:
       # We need to source the profile file to make sure conan is in PATH
       run: |
         source ~/.profile
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCPP_STD=${{ matrix.std }}
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCXX_STANDARD=${{ matrix.cxx_std }}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -113,4 +116,4 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
