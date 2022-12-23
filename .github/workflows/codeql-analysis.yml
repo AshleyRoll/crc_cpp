@@ -32,7 +32,7 @@ env:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze ${{ matrix.compiler.name }}, ${{ matrix.std }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -42,8 +42,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # We will only analyse with the latest GCC and Clang, but for C++17 and C++20 modes.
+        # The Build CI steps will test code in more versions.
         language: [ 'cpp' ]
-        compiler: [ {cpp: g++-10, c: gcc-10}, {cpp: g++-11, c: gcc-11}, {cpp: clang++-12, c: clang-12} ]
+        compiler: [ {name: "GCC 11", cpp: g++-11, c: gcc-11, pkgs: 'gcc-11 g++-11 lib32gcc-11-dev gcc-multilib'},
+                    {name: "Clang 15", cpp: clang++-15, c: clang-15, pkgs: 'clang-15 llvm-15'}
+                  ]
         std: [cxx_std_17, cxx_std_20]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
         # Learn more:
@@ -79,15 +83,14 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - run:   |
+             sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
              sudo apt update
-             sudo apt install gcc-11 g++-11 clang-12 llvm-12
+             sudo apt install ${{ matrix.compiler.pkgs }}
       shell: bash
 
     - name: Install conan
       shell: bash
       run: |
-        python3 -m pip install --upgrade pip setuptools jinja2 cmsis-svd
-        python3 -m pip install conan
         source ~/.profile
 
     - name: Configure CMake
