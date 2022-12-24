@@ -149,7 +149,6 @@ namespace impl
     {
         using traits = crc_traits<TAccumulator, TABLE_SIZE>;
 
-
         [[nodiscard]] static constexpr TAccumulator update_impl_tiny(
                 TAccumulator crc, uint8_t value, typename traits::table_type const &table)
         {
@@ -304,7 +303,7 @@ namespace impl
     //
     // A generic CRC lookup table sized for computing a nibble (4 bits) at a time.
     //
-    // This is can be a large reduction of table space storage for embedded devices.
+    // This is a large reduction of table space storage for embedded devices.
     //
     template <typename TAccumulator,
               TAccumulator const POLYNOMIAL,
@@ -378,8 +377,6 @@ namespace impl
         static constexpr typename traits::table_type m_Table = table_builder<>::table;
 #endif
     };
-
-
 
     //
     // Define the CRC algorithm parameters
@@ -479,8 +476,7 @@ namespace alg
     using crc16_modbus =    impl::crc_algorithm<uint16_t, 0x8005, 0xFFFF, 0x0000, true>;
     using crc16_x25 =       impl::crc_algorithm<uint16_t, 0x1021, 0xFFFF, 0xFFFF, true>;
     using crc16_xmodem =    impl::crc_algorithm<uint16_t, 0x1021, 0x0000, 0x0000, false>;
-
-
+    using crc16_m17lsf =    impl::crc_algorithm<uint16_t, 0x5935, 0xFFFF, 0x0000, false>;
 
     //                                          size,     poly,       init,       xor,        reverse
     using crc32 =           impl::crc_algorithm<uint32_t, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true>;
@@ -548,6 +544,7 @@ namespace family
     template<const table_size TS> class crc16_modbus    : public impl::crc<alg::crc16_modbus, TS>{};
     template<const table_size TS> class crc16_x25       : public impl::crc<alg::crc16_x25, TS>{};
     template<const table_size TS> class crc16_xmodem    : public impl::crc<alg::crc16_xmodem, TS>{};
+    template<const table_size TS> class crc16_m17lsf    : public impl::crc<alg::crc16_m17lsf, TS>{};
 
     template<const table_size TS> class crc32           : public impl::crc<alg::crc32, TS>{};
     template<const table_size TS> class crc32_bzip2     : public impl::crc<alg::crc32_bzip2, TS>{};
@@ -563,7 +560,9 @@ namespace family
 
 } // namespace family
 
-namespace small {
+
+// Default implementation "size" selected using inline namespace
+inline namespace small {
     //------------------------------------------------------------------------
     //
     // Define the set of default CRC implementations using small table size
@@ -606,6 +605,7 @@ namespace small {
     using crc16_modbus =   family::crc16_modbus    <table_size::small>;
     using crc16_x25 =      family::crc16_x25       <table_size::small>;
     using crc16_xmodem =   family::crc16_xmodem    <table_size::small>;
+    using crc16_m17lsf =   family::crc16_m17lsf    <table_size::small>;
 
     using crc32 =          family::crc32           <table_size::small>;
     using crc32_bzip2 =    family::crc32_bzip2     <table_size::small>;
@@ -661,6 +661,7 @@ namespace large
     using crc16_modbus =   family::crc16_modbus    <table_size::large>;
     using crc16_x25 =      family::crc16_x25       <table_size::large>;
     using crc16_xmodem =   family::crc16_xmodem    <table_size::large>;
+    using crc16_m17lsf =   family::crc16_m17lsf    <table_size::large>;
 
     using crc32 =          family::crc32           <table_size::large>;
     using crc32_bzip2 =    family::crc32_bzip2     <table_size::large>;
@@ -713,6 +714,7 @@ namespace tiny
     using crc16_modbus =   family::crc16_modbus    <table_size::tiny>;
     using crc16_x25 =      family::crc16_x25       <table_size::tiny>;
     using crc16_xmodem =   family::crc16_xmodem    <table_size::tiny>;
+    using crc16_m17lsf =   family::crc16_m17lsf    <table_size::tiny>;
 
     using crc32 =          family::crc32           <table_size::tiny>;
     using crc32_bzip2 =    family::crc32_bzip2     <table_size::tiny>;
@@ -727,9 +729,6 @@ namespace tiny
     using crc64_ecma =     family::crc64_ecma      <table_size::tiny>;
 
 }   // namespace tiny
-
-// select the default size
-using namespace small;
 
 }   // namespace crc_cpp
 

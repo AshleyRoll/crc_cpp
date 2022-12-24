@@ -105,6 +105,7 @@ TEST_CASE("Algorithm", "TestCRC")
     REQUIRE(test_crc<family::crc8_maxim>(message, 0xA1));
     REQUIRE(test_crc<family::crc8_rohc>(message, 0xD0));
     REQUIRE(test_crc<family::crc8_wcdma>(message, 0x25));
+
     REQUIRE(test_crc<family::crc16_ccit>(message, 0x29B1));
     REQUIRE(test_crc<family::crc16_arc>(message, 0xBB3D));
     REQUIRE(test_crc<family::crc16_augccit>(message, 0xE5CC));
@@ -128,6 +129,8 @@ TEST_CASE("Algorithm", "TestCRC")
     REQUIRE(test_crc<family::crc16_modbus>(message, 0x4B37));
     REQUIRE(test_crc<family::crc16_x25>( message, 0x906E));
     REQUIRE(test_crc<family::crc16_xmodem>( message, 0x31C3));
+    REQUIRE(test_crc<family::crc16_m17lsf>( message, 0x772B));
+
     REQUIRE(test_crc<family::crc32>(message, 0xCBF43926));
     REQUIRE(test_crc<family::crc32_bzip2>( message, 0xFC891918));
     REQUIRE(test_crc<family::crc32_c>(message, 0xE3069283));
@@ -137,5 +140,6 @@ TEST_CASE("Algorithm", "TestCRC")
     REQUIRE(test_crc<family::crc32_q>(message, 0x3010BF7F));
     REQUIRE(test_crc<family::crc32_jamcrc>(message, 0x340BC6D9));
     REQUIRE(test_crc<family::crc32_xfer>(message, 0xBD0BE338));
+
     REQUIRE(test_crc<family::crc64_ecma>( message, 0x6C40DF5F0B497347U));
 }
