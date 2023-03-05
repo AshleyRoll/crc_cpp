@@ -500,7 +500,7 @@ namespace family
 {
     //------------------------------------------------------------------------
     //
-    // Define Algorith Families
+    // Define Algorithm Families
     //
     // Each algorithm can be implemented using a table of varying sizes
     // which allows the user to trade off space and speed.
@@ -669,7 +669,11 @@ namespace large
     using crc32_d =        family::crc32_d         <table_size::large>;
     using crc32_mpeg2 =    family::crc32_mpeg2     <table_size::large>;
     using crc32_posix =    family::crc32_posix     <table_size::large>;
-    using crc32_q =        family::crc32_q         <table_size::large>; using crc32_jamcrc =   family::crc32_jamcrc    <table_size::large>; using crc32_xfer =     family::crc32_xfer      <table_size::large>; using crc64_ecma =     family::crc64_ecma      <table_size::large>;
+    using crc32_q =        family::crc32_q         <table_size::large>;
+    using crc32_jamcrc =   family::crc32_jamcrc    <table_size::large>;
+    using crc32_xfer =     family::crc32_xfer      <table_size::large>;
+
+    using crc64_ecma =     family::crc64_ecma      <table_size::large>;
 
 }   // namespace large
 
