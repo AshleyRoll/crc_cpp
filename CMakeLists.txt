@@ -16,8 +16,11 @@ FIND_PACKAGE(Python COMPONENTS Interpreter REQUIRED)
 
 # install PyPI Python packages using pip
 # Can't update to conan2 yet, not supported by clion or Conan.cmake, so force to 1.x
-EXECUTE_PROCESS(COMMAND ${Python_EXECUTABLE} -m pip install --user --upgrade pip setuptools jinja2 conan~=1.0)
-
+IF(WIN32)
+    EXECUTE_PROCESS(COMMAND ${Python_EXECUTABLE} -m pip install --upgrade pip setuptools jinja2 conan~=1.0)
+ELSE()
+    EXECUTE_PROCESS(COMMAND ${Python_EXECUTABLE} -m pip install --user --upgrade pip setuptools jinja2 conan~=1.0)
+ENDIF()
 # Link this 'library' to set the c++ standard / compile-time options requested
 ADD_LIBRARY(project_options INTERFACE)
 TARGET_COMPILE_FEATURES(project_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
